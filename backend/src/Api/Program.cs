@@ -1,7 +1,9 @@
 using Education.Api.Extensions;
 using Education.Application;
 using Education.Infrastructure;
+using Education.Infrastructure.Data;
 using Education.Infrastructure.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,12 +16,16 @@ var app = builder.Build();
 
 try
 {
-	await RoleSeeder.EnsureRolesAsync(app.Services);
+    await using var scope = app.Services.CreateAsyncScope();
+    var services = scope.ServiceProvider;
+    var dbContext = services.GetRequiredService<AppDbContext>();
+    await dbContext.Database.MigrateAsync();
+    await RoleSeeder.EnsureRolesAsync(services);
 }
 catch (Exception ex)
 {
 	var logger = app.Services.GetRequiredService<ILogger<Program>>();
-	logger.LogError(ex, "An error occurred while seeding roles during startup.");
+	logger.LogError(ex, "An error occurred while migrating or seeding during startup.");
 }
 
 app.UseApiPipeline();

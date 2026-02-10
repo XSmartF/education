@@ -13,6 +13,7 @@ obj/
 # Rider/VS Code
 .idea/
 .vscode/
+.vs/
 
 # Node
 node_modules/
@@ -22,6 +23,9 @@ node_modules/
 frontend/dist/
 mobile/.expo/
 mobile/dist/
+
+# Local publish output
+publish/
 
 # EAS local Android credentials
 mobile/credentials.json
@@ -33,6 +37,24 @@ mobile/android/keystores/
 
 # Logs
 *.log
+
+# Coverage
+coverage/
+
+# Env files
+.env
+.env.*
+
+# Certificates/keys
+*.pfx
+*.p12
+*.pem
+*.key
+*.jks
+*.keystore
+
+# Local service account files
+firebase-service-account.json
 
 # Publish profiles (keep secrets out of repo)
 *.publishsettings

@@ -4,6 +4,7 @@ using Education.Api.Authorization;
 using Education.Application.Features.Files.Abstractions;
 using Education.Application.Features.Files.Dtos;
 using Education.Infrastructure.Identity;
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -62,8 +63,9 @@ public sealed class FilesController : ControllerBase
     [Authorize(Roles = StaffRoles)]
     [HttpPost]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<ApiResponse<FileItemDto>>> Upload([FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResponse<FileItemDto>>> Upload([FromForm] FileUploadForm request, CancellationToken cancellationToken)
     {
+        var file = request?.File;
         if (file is null || file.Length <= 0)
         {
             return BadRequest(ApiResponse.Fail<FileItemDto>(
@@ -82,8 +84,12 @@ public sealed class FilesController : ControllerBase
     [Authorize(Roles = StaffRoles)]
     [HttpPut("{id:guid}")]
     [Consumes("multipart/form-data")]
-    public async Task<ActionResult<ApiResponse<FileItemDto>>> Replace(Guid id, [FromForm] IFormFile file, CancellationToken cancellationToken)
+    public async Task<ActionResult<ApiResponse<FileItemDto>>> Replace(
+        Guid id,
+        [FromForm] FileUploadForm request,
+        CancellationToken cancellationToken)
     {
+        var file = request?.File;
         if (file is null || file.Length <= 0)
         {
             return BadRequest(ApiResponse.Fail<FileItemDto>(
@@ -113,5 +119,11 @@ public sealed class FilesController : ControllerBase
         return deleted
             ? Ok(ApiResponse.Ok())
             : NotFound(ApiResponse.Fail(ApiErrorCodes.NotFound, "File not found."));
+    }
+
+    public sealed class FileUploadForm
+    {
+        [Required]
+        public IFormFile File { get; init; } = default!;
     }
 }
