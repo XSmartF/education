@@ -6,6 +6,7 @@
   "build": {
     "preview": {
       "releaseChannel": "preview",
+      "credentialsSource": "local",
       "android": {
         "buildType": "apk"
       }

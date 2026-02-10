@@ -11,5 +11,5 @@
 - Security + cache headers: `frontend/public/_headers`
 
 ## Backend
-- Publish profile is stored for MonsterASP.
-- Configure secrets in GitHub Actions for deploy.
+- Publish profile is not stored in repo. Configure MonsterASP deploy secrets in GitHub Actions.
+- Deploy workflow generates `appsettings.Production.json` from GitHub Secrets before WebDeploy.

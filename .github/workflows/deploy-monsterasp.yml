@@ -15,6 +15,12 @@ jobs:
   deploy:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: windows-latest
+    env:
+      ConnectionStrings__Default: ${{ secrets.ConnectionStrings__Default }}
+      Jwt__Key: ${{ secrets.Jwt__Key }}
+      Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
+      Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
+      Email__FromEmail: ${{ secrets.Email__FromEmail }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,6 +41,30 @@ jobs:
           branch: main
           name: web-publish
           path: publish
+
+      - name: Inject runtime secrets
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:ConnectionStrings__Default)) {
+            Write-Error "Missing ConnectionStrings__Default"; exit 1
+          }
+          if ([string]::IsNullOrWhiteSpace($env:Jwt__Key)) {
+            Write-Error "Missing Jwt__Key"; exit 1
+          }
+
+          $settings = @{
+            ConnectionStrings = @{ Default = $env:ConnectionStrings__Default }
+            Jwt = @{ Key = $env:Jwt__Key }
+          }
+
+          $email = @{}
+          if (-not [string]::IsNullOrWhiteSpace($env:Email__SmtpUser)) { $email.SmtpUser = $env:Email__SmtpUser }
+          if (-not [string]::IsNullOrWhiteSpace($env:Email__SmtpPass)) { $email.SmtpPass = $env:Email__SmtpPass }
+          if (-not [string]::IsNullOrWhiteSpace($env:Email__FromEmail)) { $email.FromEmail = $env:Email__FromEmail }
+          if ($email.Count -gt 0) { $settings.Email = $email }
+
+          $json = $settings | ConvertTo-Json -Depth 5
+          $json | Set-Content -Path publish/appsettings.Production.json -NoNewline
 
       - name: Deploy to MonsterASP.NET via WebDeploy
         uses: rasmusbuchholdt/simply-web-deploy@2.2.0

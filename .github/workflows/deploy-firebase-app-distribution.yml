@@ -21,6 +21,10 @@ jobs:
       FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
       FIREBASE_TESTERS: ${{ secrets.FIREBASE_TESTERS }}
       FIREBASE_GROUPS: ${{ secrets.FIREBASE_GROUPS }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       EAS_NO_VCS: 1
     steps:
       - uses: actions/checkout@v4
@@ -48,6 +52,23 @@ jobs:
             echo "Missing FIREBASE_APP_ID_ANDROID"; exit 1; fi
           if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
             echo "Missing FIREBASE_SERVICE_ACCOUNT_JSON"; exit 1; fi
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          if [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; fi
+          if [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "Missing ANDROID_KEY_PASSWORD"; exit 1; fi
+          if [ -z "$ANDROID_KEY_ALIAS" ]; then
+            echo "Missing ANDROID_KEY_ALIAS"; exit 1; fi
+
+      - name: Prepare Android keystore (local credentials)
+        shell: bash
+        run: |
+          mkdir -p mobile/android/keystores
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > mobile/android/keystores/release.keystore
+          cat > mobile/credentials.json <<EOF
+          {"android":{"keystore":{"keystorePath":"android/keystores/release.keystore","keystorePassword":"${ANDROID_KEYSTORE_PASSWORD}","keyAlias":"${ANDROID_KEY_ALIAS}","keyPassword":"${ANDROID_KEY_PASSWORD}"}}}
+          EOF
 
       - name: Build Android (EAS)
         working-directory: mobile

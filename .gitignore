@@ -23,6 +23,14 @@ frontend/dist/
 mobile/.expo/
 mobile/dist/
 
+# EAS local Android credentials
+mobile/credentials.json
+mobile/android/keystores/
+
+# Local tools
+.tools/
+.tmp/
+
 # Logs
 *.log
 

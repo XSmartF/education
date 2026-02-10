@@ -33,6 +33,7 @@
 ## CI
 - GitHub Actions: `.github/workflows/ci.yml`
 - Deploy frontend (Netlify): `.github/workflows/deploy-netlify.yml` (can thiet lap `NETLIFY_AUTH_TOKEN`, `NETLIFY_SITE_ID`)
+- Deploy backend (MonsterASP): `.github/workflows/deploy-monsterasp.yml` (can thiet lap `WEBSITE_NAME`, `SERVER_COMPUTER_NAME`, `SERVER_USERNAME`, `SERVER_PASSWORD`)
 
 ## Secrets
 - Chi tiet secret: `docs/SECRETS.md`
@@ -46,6 +47,10 @@
   - `EXPO_TOKEN`
   - `FIREBASE_APP_ID_ANDROID`
   - `FIREBASE_SERVICE_ACCOUNT_JSON`
+  - `ANDROID_KEYSTORE_BASE64`
+  - `ANDROID_KEYSTORE_PASSWORD`
+  - `ANDROID_KEY_PASSWORD`
+  - `ANDROID_KEY_ALIAS`
   - (tuy chon) `FIREBASE_TESTERS`, `FIREBASE_GROUPS`
 - Workflow: `.github/workflows/deploy-firebase-app-distribution.yml`
 

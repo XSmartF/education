@@ -110,6 +110,7 @@ public static class ServiceCollectionExtensions
         services.AddSwaggerGen(options =>
         {
             options.SwaggerDoc("v1", new OpenApiInfo { Title = "Education API", Version = "v1" });
+            options.OperationFilter<FormFileOperationFilter>();
             options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
                 Name = "Authorization",
@@ -130,6 +131,8 @@ public static class ServiceCollectionExtensions
                     Array.Empty<string>()
                 }
             });
+
+            options.OperationFilter<Education.Api.Swagger.FileUploadOperationFilter>();
         });
 
         return services;
