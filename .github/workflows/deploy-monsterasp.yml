@@ -87,13 +87,18 @@ jobs:
 
           try {
             $uri = [uri]$publishUrlToParse
-            $publishHost = $uri.Host
+            # Use DnsSafeHost and trim whitespace to avoid empty host or accidental spaces
+            $publishHost = ($uri.DnsSafeHost ?? $uri.Host) -as [string]
+            if ($publishHost) { $publishHost = $publishHost.Trim() }
           } catch {
             # Fallback: strip protocol, path and port
             $publishHost = $publishUrlRaw -replace '^https?://', '' -replace '/.*$', '' -replace ':.*$', ''
+            $publishHost = $publishHost.Trim()
           }
 
-          if (-not $publishHost) { throw 'Could not parse publishUrl host from publishsettings.' }
+          if (-not $publishHost) {
+            throw "Could not parse publishUrl host from publishsettings. Raw publishUrl: '$publishUrlRaw'"
+          }
 
           $serverComputerName = "https://$publishHost:8172"
 
