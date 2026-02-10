@@ -534,8 +534,9 @@ public sealed class AuthController : ControllerBase
                 return;
             }
 
+            var to = user.Email!;
             var message = new EmailMessage(
-                user.Email,
+                to,
                 _emailOptions.WelcomeSubject,
                 htmlBody);
 

@@ -53,21 +53,40 @@ jobs:
         shell: pwsh
         run: |
           $path = 'backend/src/Api/Properties/PublishProfiles/site53680-WebDeploy.publishsettings'
-          [xml]$xml = Get-Content $path
+          Write-Host "Reading publishsettings from $path"
+          if (-not (Test-Path $path)) { throw "Publishsettings file not found at $path" }
+          try {
+            [xml]$xml = Get-Content $path -ErrorAction Stop
+          } catch {
+            throw "Failed to read or parse publishsettings XML: $($_.Exception.Message)"
+          }
+
           $profile = $xml.publishData.publishProfile | Select-Object -First 1
           if (-not $profile) { throw 'No publishProfile found in publishsettings.' }
+
           $websiteName = $profile.msdeploySite
           $publishUrlRaw = $profile.publishUrl
           $username = $profile.userName
           $password = $profile.userPWD
 
-          if (-not $websiteName -or -not $publishUrlRaw -or -not $username -or -not $password) {
-            throw 'publishsettings missing required attributes.'
+          $missing = @()
+          if (-not $websiteName) { $missing += 'msdeploySite' }
+          if (-not $publishUrlRaw) { $missing += 'publishUrl' }
+          if (-not $username) { $missing += 'userName' }
+          if (-not $password) { $missing += 'userPWD' }
+          if ($missing.Count -gt 0) {
+            throw "publishsettings missing required attributes: $($missing -join ', ')"
           }
 
-          # Try to parse publishUrl as a URI to extract the host reliably.
+          # Ensure publishUrl has a scheme so [uri] parsing works (some publishsettings omit it)
+          if ($publishUrlRaw -notmatch '^https?://') {
+            $publishUrlToParse = "https://$publishUrlRaw"
+          } else {
+            $publishUrlToParse = $publishUrlRaw
+          }
+
           try {
-            $uri = [uri]$publishUrlRaw
+            $uri = [uri]$publishUrlToParse
             $publishHost = $uri.Host
           } catch {
             # Fallback: strip protocol, path and port
@@ -78,12 +97,17 @@ jobs:
 
           $serverComputerName = "https://$publishHost:8172"
 
+          # Mask the password in logs
+          Write-Host 'Masking password and exporting variables'
           "::add-mask::$password"
 
+          # Export for later steps
           "WEBSITE_NAME=$websiteName" | Out-File -FilePath $env:GITHUB_ENV -Append
           "SERVER_COMPUTER_NAME=$serverComputerName" | Out-File -FilePath $env:GITHUB_ENV -Append
           "SERVER_USERNAME=$username" | Out-File -FilePath $env:GITHUB_ENV -Append
           "SERVER_PASSWORD=$password" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          Write-Host "Resolved server: $serverComputerName (website: $websiteName)"
 
       - name: Deploy to MonsterASP.NET via WebDeploy
         uses: rasmusbuchholdt/simply-web-deploy@2.2.0
