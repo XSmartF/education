@@ -5,6 +5,9 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "android": {
+      "package": "com.xsmartf.education"
+    },
     "extra": {
       "eas": {
         "projectId": "7ed52aa6-f6a6-4295-a153-7b54142fd996"
