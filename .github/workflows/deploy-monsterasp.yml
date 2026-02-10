@@ -68,15 +68,15 @@ jobs:
           # Try to parse publishUrl as a URI to extract the host reliably.
           try {
             $uri = [uri]$publishUrlRaw
-            $host = $uri.Host
+            $publishHost = $uri.Host
           } catch {
             # Fallback: strip protocol, path and port
-            $host = $publishUrlRaw -replace '^https?://', '' -replace '/.*$', '' -replace ':.*$', ''
+            $publishHost = $publishUrlRaw -replace '^https?://', '' -replace '/.*$', '' -replace ':.*$', ''
           }
 
-          if (-not $host) { throw 'Could not parse publishUrl host from publishsettings.' }
+          if (-not $publishHost) { throw 'Could not parse publishUrl host from publishsettings.' }
 
-          $serverComputerName = "https://$host:8172"
+          $serverComputerName = "https://$publishHost:8172"
 
           "::add-mask::$password"
 
