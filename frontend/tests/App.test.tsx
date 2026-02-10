@@ -1,8 +1,8 @@
 ﻿import { render, screen } from '@testing-library/react';
+import '../src/shared/i18n';
 import { Provider } from 'react-redux';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider } from '@tanstack/react-router';
-import { router } from '../src/app/routes/router';
+import LoginPage from '../src/domains/auth/pages/LoginPage';
 import { store } from '../src/app/store/store';
 import { queryClient } from '../src/app/query/query-client';
 
@@ -11,7 +11,7 @@ describe('App shell', () => {
     render(
       <Provider store={store}>
         <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
+          <LoginPage />
         </QueryClientProvider>
       </Provider>
     );
