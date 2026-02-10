@@ -147,7 +147,7 @@ jobs:
           from pathlib import Path
 
           base_path = Path("backend/src/Api/appsettings.json")
-          data = json.loads(base_path.read_text(encoding="utf-8"))
+          data = json.loads(base_path.read_text(encoding="utf-8-sig"))
 
           data.setdefault("ConnectionStrings", {})
           data["ConnectionStrings"]["Default"] = os.environ["ConnectionStrings__Default"]
