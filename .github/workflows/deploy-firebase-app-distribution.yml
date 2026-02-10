@@ -1,0 +1,75 @@
+name: deploy-firebase-app-distribution
+
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-firebase-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      FIREBASE_TESTERS: ${{ secrets.FIREBASE_TESTERS }}
+      FIREBASE_GROUPS: ${{ secrets.FIREBASE_GROUPS }}
+      EAS_NO_VCS: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+        working-directory: mobile
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Ensure required secrets
+        shell: bash
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "Missing EXPO_TOKEN"; exit 1; fi
+          if [ -z "$FIREBASE_APP_ID_ANDROID" ]; then
+            echo "Missing FIREBASE_APP_ID_ANDROID"; exit 1; fi
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "Missing FIREBASE_SERVICE_ACCOUNT_JSON"; exit 1; fi
+
+      - name: Build Android (EAS)
+        working-directory: mobile
+        run: eas build --platform android --profile preview --non-interactive --wait
+
+      - name: Download APK
+        working-directory: mobile
+        run: |
+          mkdir -p build
+          eas build:download --platform android --latest --output build/app.apk
+
+      - name: Write Firebase service account
+        shell: bash
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > firebase-service-account.json
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+          serviceCredentialsFile: firebase-service-account.json
+          file: mobile/build/app.apk
+          releaseNotes: "Automated build from GitHub Actions"
+          testers: ${{ secrets.FIREBASE_TESTERS }}
+          groups: ${{ secrets.FIREBASE_GROUPS }}

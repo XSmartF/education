@@ -1,0 +1,18 @@
+{
+  "title": "Todos",
+  "readOnly": "Read only",
+  "addPlaceholder": "Add a task",
+  "addButton": "Add",
+  "loading": "Loading...",
+  "detail": "Details",
+  "remove": "Delete",
+  "detailTitle": "Details",
+  "detailSubtitle": "Update task",
+  "statusDone": "Done",
+  "statusDoing": "In progress",
+  "labelTitle": "Title",
+  "labelDone": "Completed",
+  "save": "Save",
+  "back": "Back",
+  "notFound": "Task not found."
+}

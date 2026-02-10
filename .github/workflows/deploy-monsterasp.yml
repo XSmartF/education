@@ -1,0 +1,87 @@
+﻿name: deploy-monsterasp
+
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+    branches: ["main"]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download publish artifact (from CI)
+        if: github.event_name == 'workflow_run'
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          run_id: ${{ github.event.workflow_run.id }}
+          name: web-publish
+          path: publish
+
+      - name: Download publish artifact (manual)
+        if: github.event_name == 'workflow_dispatch'
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          workflow: ci.yml
+          branch: main
+          name: web-publish
+          path: publish
+
+      - name: Write MonsterASP publish settings (runtime)
+        shell: pwsh
+        env:
+          MONSTER_PUBLISH_SETTINGS: ${{ secrets.MONSTER_PUBLISH_SETTINGS }}
+        run: |
+          if (-not $env:MONSTER_PUBLISH_SETTINGS) {
+            throw 'Missing secret MONSTER_PUBLISH_SETTINGS'
+          }
+          $path = 'backend/src/Api/Properties/PublishProfiles/site53680-WebDeploy.publishsettings'
+          New-Item -ItemType Directory -Force -Path (Split-Path $path) | Out-Null
+          $env:MONSTER_PUBLISH_SETTINGS | Set-Content -Encoding UTF8 $path
+
+      - name: Load WebDeploy secrets from publishsettings
+        id: publishsettings
+        shell: pwsh
+        run: |
+          $path = 'backend/src/Api/Properties/PublishProfiles/site53680-WebDeploy.publishsettings'
+          [xml]$xml = Get-Content $path
+          $profile = $xml.publishData.publishProfile | Select-Object -First 1
+          if (-not $profile) { throw 'No publishProfile found in publishsettings.' }
+
+          $websiteName = $profile.msdeploySite
+          $publishUrl = $profile.publishUrl
+          $username = $profile.userName
+          $password = $profile.userPWD
+
+          if (-not $websiteName -or -not $publishUrl -or -not $username -or -not $password) {
+            throw 'publishsettings missing required attributes.'
+          }
+
+          $publishUrl = $publishUrl -replace '^https?://', ''
+          $publishUrl = $publishUrl -replace ':8172.*$', ''
+          $serverComputerName = "https://$publishUrl:8172"
+
+          "::add-mask::$password"
+
+          "WEBSITE_NAME=$websiteName" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SERVER_COMPUTER_NAME=$serverComputerName" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SERVER_USERNAME=$username" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "SERVER_PASSWORD=$password" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Deploy to MonsterASP.NET via WebDeploy
+        uses: rasmusbuchholdt/simply-web-deploy@2.2.0
+        with:
+          website-name: ${{ env.WEBSITE_NAME }}
+          server-computer-name: ${{ env.SERVER_COMPUTER_NAME }}
+          server-username: ${{ env.SERVER_USERNAME }}
+          server-password: ${{ env.SERVER_PASSWORD }}
+          source-path: 'publish'

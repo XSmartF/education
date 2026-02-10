@@ -1,0 +1,18 @@
+{
+  "title": "Todos",
+  "readOnly": "Chi doc",
+  "addPlaceholder": "Them viec can lam",
+  "addButton": "Them",
+  "loading": "Dang tai...",
+  "detail": "Chi tiet",
+  "remove": "Xoa",
+  "detailTitle": "Chi tiet",
+  "statusDone": "Hoan thanh",
+  "statusDoing": "Dang lam",
+  "labelTitle": "Tieu de",
+  "titleRequired": "Tieu de la bat buoc.",
+  "labelDone": "Hoan thanh",
+  "save": "Luu",
+  "back": "Quay lai",
+  "notFound": "Khong tim thay cong viec."
+}
