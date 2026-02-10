@@ -45,6 +45,7 @@
   "jest": {
     "preset": "jest-expo",
     "setupFilesAfterEnv": [
+      "<rootDir>/tests/jest-setup.ts",
       "@testing-library/react-native/extend-expect"
     ],
     "testMatch": [
