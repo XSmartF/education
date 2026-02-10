@@ -130,6 +130,44 @@ jobs:
       - name: Restore
         run: dotnet restore Education.sln
 
+      - name: Ensure required secrets
+        shell: bash
+        run: |
+          if [ -z "$ConnectionStrings__Default" ]; then
+            echo "Missing ConnectionStrings__Default"; exit 1; fi
+          if [ -z "$Jwt__Key" ]; then
+            echo "Missing Jwt__Key"; exit 1; fi
+
+      - name: Write production appsettings
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          base_path = Path("backend/src/Api/appsettings.json")
+          data = json.loads(base_path.read_text(encoding="utf-8"))
+
+          data.setdefault("ConnectionStrings", {})
+          data["ConnectionStrings"]["Default"] = os.environ["ConnectionStrings__Default"]
+
+          data.setdefault("Jwt", {})
+          data["Jwt"]["Key"] = os.environ["Jwt__Key"]
+
+          email = data.get("Email")
+          if isinstance(email, dict):
+            smtp_user = os.environ.get("Email__SmtpUser")
+            smtp_pass = os.environ.get("Email__SmtpPass")
+            if smtp_user is not None:
+              email["SmtpUser"] = smtp_user
+            if smtp_pass is not None:
+              email["SmtpPass"] = smtp_pass
+
+          prod_path = Path("backend/src/Api/appsettings.Production.json")
+          prod_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+          PY
+
       - name: Publish
         run: dotnet publish backend/src/Api/Api.csproj -c Release -o ./publish --framework net10.0 --no-restore
 
