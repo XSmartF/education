@@ -3,7 +3,7 @@ import { vi } from 'vitest';
 
 // Mock router navigation used by `LoginPage` so tests don't require a RouterProvider
 vi.mock('@tanstack/react-router', async () => {
-  const actual = await vi.importActual<any>('@tanstack/react-router');
+  const actual = await vi.importActual('@tanstack/react-router');
   return {
     ...actual,
     useNavigate: () => () => {},
