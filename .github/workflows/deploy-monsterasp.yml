@@ -56,19 +56,27 @@ jobs:
           [xml]$xml = Get-Content $path
           $profile = $xml.publishData.publishProfile | Select-Object -First 1
           if (-not $profile) { throw 'No publishProfile found in publishsettings.' }
-
           $websiteName = $profile.msdeploySite
-          $publishUrl = $profile.publishUrl
+          $publishUrlRaw = $profile.publishUrl
           $username = $profile.userName
           $password = $profile.userPWD
 
-          if (-not $websiteName -or -not $publishUrl -or -not $username -or -not $password) {
+          if (-not $websiteName -or -not $publishUrlRaw -or -not $username -or -not $password) {
             throw 'publishsettings missing required attributes.'
           }
 
-          $publishUrl = $publishUrl -replace '^https?://', ''
-          $publishUrl = $publishUrl -replace ':8172.*$', ''
-          $serverComputerName = "https://$publishUrl:8172"
+          # Try to parse publishUrl as a URI to extract the host reliably.
+          try {
+            $uri = [uri]$publishUrlRaw
+            $host = $uri.Host
+          } catch {
+            # Fallback: strip protocol, path and port
+            $host = $publishUrlRaw -replace '^https?://', '' -replace '/.*$', '' -replace ':.*$', ''
+          }
+
+          if (-not $host) { throw 'Could not parse publishUrl host from publishsettings.' }
+
+          $serverComputerName = "https://$host:8172"
 
           "::add-mask::$password"
 
