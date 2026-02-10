@@ -1,3 +1,5 @@
+
+using Education.Domain.Entities;
 namespace Education.Domain.Interfaces;
 
 

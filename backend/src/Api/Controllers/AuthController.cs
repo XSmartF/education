@@ -29,6 +29,7 @@ public sealed class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly JwtOptions _jwtOptions;
     private readonly EmailOptions _emailOptions;
+    private static readonly string RefreshTokenCookieName = AuthCookieNames.RefreshToken;
 
     public AuthController(
         UserManager<AppUser> userManager,
@@ -54,7 +55,7 @@ public sealed class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("register")]
-    public async Task<ActionResult<ApiResponse<AuthResponse>>> Register(RegisterRequest request)
+    public async Task<ActionResult<ApiResponse<AuthResponse>>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var user = new AppUser
         {

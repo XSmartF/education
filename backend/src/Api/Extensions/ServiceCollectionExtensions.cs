@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using Education.Api.Authorization;
 using Education.Api.Contracts;
 using Education.Infrastructure.Identity;

@@ -1,3 +1,6 @@
+
+using Education.Domain.Interfaces;
+using Education.Application.Abstractions;
 namespace Education.Application.Features.Files.Services;
 
 using AutoMapper;

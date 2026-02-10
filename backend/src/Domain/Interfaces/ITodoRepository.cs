@@ -1,4 +1,6 @@
-﻿namespace Education.Domain.Interfaces;
+﻿
+using Education.Domain.Entities;
+namespace Education.Domain.Interfaces;
 
 
 public interface ITodoRepository

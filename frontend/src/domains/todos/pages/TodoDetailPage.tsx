@@ -28,7 +28,7 @@ export default function TodoDetailPage() {
   const { t: translate } = useTranslation('todos');
   const auth = useAuth();
   const navigate = useNavigate();
-  const { todoId } = useParams({ from: '/todos/$todoId' });
+    const { todoId } = useParams({ from: '/dashboard/todos/$todoId' });
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
