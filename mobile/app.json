@@ -1,9 +1,15 @@
-﻿{
+{
   "expo": {
     "name": "Education",
     "slug": "education-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light"
+    "userInterfaceStyle": "light",
+    "extra": {
+      "eas": {
+        "projectId": "7ed52aa6-f6a6-4295-a153-7b54142fd996"
+      }
+    },
+    "owner": "nhontdn2509"
   }
 }
