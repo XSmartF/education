@@ -2,7 +2,8 @@ import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'ax
 import { toast } from '@/shared/hooks/use-toast';
 import { getDeviceId } from '@/shared/security/device-id';
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+const API_BASE =
+  import.meta.env.VITE_API_BASE ?? (import.meta.env.PROD ? 'https://learnsys.runasp.net' : '/api');
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'X-CSRF-Token';
 const DEVICE_HEADER = 'X-Device-Id';
