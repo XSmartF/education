@@ -52,6 +52,11 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__Default: ${{ secrets.ConnectionStrings__Default }}
+      Jwt__Key: ${{ secrets.Jwt__Key }}
+      Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
+      Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
     steps:
       - uses: actions/checkout@v4
 
@@ -109,6 +114,11 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: [backend]
     runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__Default: ${{ secrets.ConnectionStrings__Default }}
+      Jwt__Key: ${{ secrets.Jwt__Key }}
+      Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
+      Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
     steps:
       - uses: actions/checkout@v4
 
