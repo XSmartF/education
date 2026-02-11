@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "android": {
-      "package": "com.xsmartf.education"
+      "package": "com.travelplanai"
     },
     "extra": {
       "eas": {
