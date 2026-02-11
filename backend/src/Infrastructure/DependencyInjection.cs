@@ -35,7 +35,9 @@ public static class DependencyInjection
         });
 
         services.AddDbContext<AppDbContext>((sp, options) =>
-            options.UseSqlServer(configuration.GetConnectionString("Default"))
+            options.UseSqlServer(
+                    configuration.GetConnectionString("Default"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure())
                 .AddInterceptors(sp.GetServices<ISaveChangesInterceptor>()));
 
         services.AddIdentityCore<AppUser>(options =>
