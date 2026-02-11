@@ -71,7 +71,11 @@ const applySecurityHeaders = (config: InternalAxiosRequestConfig) => {
     try {
       // eslint-disable-next-line no-console
       console.debug('[http-client] CSRF cookie:', csrfToken);
-    } catch {}
+    } catch (err) {
+      // swallow errors reading console for environments without console
+      // eslint-disable-next-line no-console
+      console.debug('[http-client] debug log failed:', err);
+    }
 
     if (csrfToken && !headers[CSRF_HEADER]) {
       headers[CSRF_HEADER] = csrfToken;
@@ -79,7 +83,10 @@ const applySecurityHeaders = (config: InternalAxiosRequestConfig) => {
       try {
         // eslint-disable-next-line no-console
         console.debug('[http-client] No CSRF cookie found to attach');
-      } catch {}
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.debug('[http-client] debug log failed:', err);
+      }
     }
   }
 
@@ -247,9 +254,16 @@ async function unwrap<T>(promise: Promise<AxiosResponse<T>>) {
       if (header && typeof document !== 'undefined') {
         try {
           document.cookie = `${CSRF_COOKIE}=${encodeURIComponent(header)}; path=/`;
-        } catch {}
+        } catch (err) {
+          // document.cookie may throw in some environments
+          // eslint-disable-next-line no-console
+          console.debug('[http-client] failed to set CSRF cookie from header:', err);
+        }
       }
-    } catch {}
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.debug('[http-client] failed to read x-csrf-token header:', err);
+    }
     const payload = res.data as unknown;
     if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
       const api = payload as ApiResponse<T>;
