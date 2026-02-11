@@ -10,7 +10,6 @@ const API_BASE =
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'X-CSRF-Token';
 const DEVICE_HEADER = 'X-Device-Id';
-// tokens are kept in Redux memory (not persisted to localStorage)
 
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
 
@@ -54,6 +53,10 @@ const getCookieValue = (name: string): string => {
   return match ? decodeURIComponent(match[1]) : '';
 };
 
+export const getCsrfToken = () => {
+  return typeof document === 'undefined' ? '' : getCookieValue(CSRF_COOKIE);
+};
+
 const applySecurityHeaders = (config: InternalAxiosRequestConfig) => {
   config.headers = config.headers ?? {};
   const headers = config.headers as Record<string, string>;
@@ -64,8 +67,19 @@ const applySecurityHeaders = (config: InternalAxiosRequestConfig) => {
   const method = (config.method ?? 'get').toLowerCase();
   if (!SAFE_METHODS.has(method)) {
     const csrfToken = getCookieValue(CSRF_COOKIE);
+    // Debug: log CSRF cookie/header for troubleshooting CSRF validation failures
+    try {
+      // eslint-disable-next-line no-console
+      console.debug('[http-client] CSRF cookie:', csrfToken);
+    } catch {}
+
     if (csrfToken && !headers[CSRF_HEADER]) {
       headers[CSRF_HEADER] = csrfToken;
+    } else if (!csrfToken) {
+      try {
+        // eslint-disable-next-line no-console
+        console.debug('[http-client] No CSRF cookie found to attach');
+      } catch {}
     }
   }
 
@@ -226,6 +240,16 @@ function toErrorMessage(error: unknown) {
 async function unwrap<T>(promise: Promise<AxiosResponse<T>>) {
   try {
     const res = await promise;
+    // If server provides CSRF token header, mirror it into a readable cookie so client code
+    // (and subsequent requests) can access it when needed.
+    try {
+      const header = (res.headers as Record<string, unknown>)['x-csrf-token'] as string | undefined;
+      if (header && typeof document !== 'undefined') {
+        try {
+          document.cookie = `${CSRF_COOKIE}=${encodeURIComponent(header)}; path=/`;
+        } catch {}
+      }
+    } catch {}
     const payload = res.data as unknown;
     if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
       const api = payload as ApiResponse<T>;

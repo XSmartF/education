@@ -4,6 +4,7 @@
 - JWT access token stored in HttpOnly cookie.
 - Refresh token rotation enabled.
 - CSRF protection enforced for unsafe methods using `X-CSRF-Token`.
+	- The API also returns `X-CSRF-Token` response header when issuing/rotating tokens; the frontend mirrors that value into a readable cookie so it can set the `X-CSRF-Token` request header.
 
 ## Password policy
 - Minimum length 10

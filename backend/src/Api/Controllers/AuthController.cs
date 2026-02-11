@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Education.Api.Controllers;
 
@@ -29,6 +30,7 @@ public sealed class AuthController : ControllerBase
     private readonly ILogger<AuthController> _logger;
     private readonly JwtOptions _jwtOptions;
     private readonly EmailOptions _emailOptions;
+    private readonly bool _isProduction;
     private static readonly string RefreshTokenCookieName = AuthCookieNames.RefreshToken;
 
     public AuthController(
@@ -40,7 +42,8 @@ public sealed class AuthController : ControllerBase
         IEmailTemplateRenderer emailTemplateRenderer,
         ILogger<AuthController> logger,
         IOptions<JwtOptions> jwtOptions,
-        IOptions<EmailOptions> emailOptions)
+        IOptions<EmailOptions> emailOptions,
+        IWebHostEnvironment env)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -51,6 +54,7 @@ public sealed class AuthController : ControllerBase
         _logger = logger;
         _jwtOptions = jwtOptions.Value;
         _emailOptions = emailOptions.Value;
+        _isProduction = env.IsProduction();
     }
 
     [AllowAnonymous]
@@ -382,8 +386,8 @@ public sealed class AuthController : ControllerBase
         var options = new CookieOptions
         {
             HttpOnly = true,
-            Secure = isHttps,
-            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+            Secure = _isProduction || isHttps,
+            SameSite = _isProduction ? SameSiteMode.None : (isHttps ? SameSiteMode.None : SameSiteMode.Lax),
             Expires = expiresAt.UtcDateTime,
             Path = "/"
         };
@@ -397,8 +401,8 @@ public sealed class AuthController : ControllerBase
         var options = new CookieOptions
         {
             HttpOnly = true,
-            Secure = isHttps,
-            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+            Secure = _isProduction || isHttps,
+            SameSite = _isProduction ? SameSiteMode.None : (isHttps ? SameSiteMode.None : SameSiteMode.Lax),
             Expires = expiresAt.UtcDateTime,
             Path = "/api/auth/refresh"
         };
@@ -412,13 +416,19 @@ public sealed class AuthController : ControllerBase
         var options = new CookieOptions
         {
             HttpOnly = false,
-            Secure = isHttps,
-            SameSite = isHttps ? SameSiteMode.None : SameSiteMode.Lax,
+            Secure = _isProduction || isHttps,
+            SameSite = _isProduction ? SameSiteMode.None : (isHttps ? SameSiteMode.None : SameSiteMode.Lax),
             Expires = expiresAt.UtcDateTime,
             Path = "/"
         };
 
         Response.Cookies.Append(AuthCookieNames.CsrfToken, token, options);
+        // Also expose CSRF token in a response header so the client can read it
+        // (useful for clients that cannot access the cookie due to policy).
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Response.Headers[AuthCookieNames.CsrfHeader] = token;
+        }
     }
 
     private static string GenerateCsrfToken()
