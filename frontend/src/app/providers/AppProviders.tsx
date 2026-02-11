@@ -12,11 +12,13 @@ import { useAppSelector } from '@/app/store/hooks';
 import React from 'react';
 
 export default function AppProviders() {
+  const bootstrapping = useAppSelector((s) => s.auth.bootstrapping ?? false);
+
   return (
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
-        <RouterProvider router={router} />
         <AuthBootstrap />
+        {!bootstrapping && <RouterProvider router={router} />}
         <CToaster />
         <BootstrappingOverlay />
         {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
