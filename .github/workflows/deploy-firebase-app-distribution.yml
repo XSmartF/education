@@ -78,7 +78,10 @@ jobs:
         working-directory: mobile
         run: |
           mkdir -p build
-          eas build:download --platform android --latest --output build/app.apk
+          eas --version || true
+          build_url=$(eas build:list --platform android --limit 1 --build-profile preview --json | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const data=JSON.parse(d||'[]');const url=data?.[0]?.artifacts?.buildUrl||data?.[0]?.artifacts?.applicationArchiveUrl; if(!url){console.error('Missing buildUrl in EAS build list output'); process.exit(1);} console.log(url);});")
+          echo "Downloading APK from $build_url"
+          curl -L -H "Authorization: Bearer $EXPO_TOKEN" -o build/app.apk "$build_url"
 
       - name: Write Firebase service account
         shell: bash
