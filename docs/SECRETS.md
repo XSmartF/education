@@ -25,6 +25,11 @@ Optional:
 - `Email__SmtpPass` (SMTP password)
 - `Email__FromEmail` (override sender email)
 
+## GitHub Actions variables
+Optional variables used by workflows:
+- `VITE_API_BASE` (frontend API base URL, e.g. `https://learnsys.runasp.net/api`)
+- `DIAGNOSTICS_INCLUDE_EXCEPTION_DETAILS` (set `true` to include exception details in 500 responses)
+
 ## Backend runtime secrets
 Use environment variables or secret manager (do not commit to repo):
 - `ConnectionStrings__Default`
