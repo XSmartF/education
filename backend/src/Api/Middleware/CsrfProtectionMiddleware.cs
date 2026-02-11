@@ -16,7 +16,9 @@ public sealed class CsrfProtectionMiddleware
     private static readonly HashSet<string> ExcludedPaths = new(StringComparer.OrdinalIgnoreCase)
     {
         "/api/auth/login",
-        "/api/auth/register"
+        "/api/auth/register",
+        "/api/auth/refresh",
+        "/api/auth/revoke"
     };
 
     private readonly RequestDelegate _next;
