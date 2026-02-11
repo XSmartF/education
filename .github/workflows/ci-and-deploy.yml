@@ -1,0 +1,357 @@
+name: CI and Deploy
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-and-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    env:
+      VITE_API_BASE: ${{ vars.VITE_API_BASE || 'https://learnsys.runasp.net/api' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend deps
+        run: npm ci || npm install
+        working-directory: frontend
+
+      - name: Lint frontend
+        run: npm run lint
+        working-directory: frontend
+
+      - name: Typecheck frontend
+        run: npm run typecheck
+        working-directory: frontend
+
+      - name: Test frontend
+        run: npm run test:ci
+        working-directory: frontend
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend
+
+      - name: Upload frontend build (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist
+          path: frontend/dist
+          if-no-files-found: error
+
+  backend:
+    runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__Default: ${{ secrets.ConnectionStrings__Default }}
+      Jwt__Key: ${{ secrets.Jwt__Key }}
+      Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
+      Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props', 'Directory.Build.props', '**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        run: dotnet restore Education.sln
+
+      - name: Build
+        run: dotnet build Education.sln -c Release --no-restore
+
+      - name: Test backend
+        run: dotnet test Education.sln -c Release --no-build
+
+  mobile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install
+        run: npm ci
+        working-directory: mobile
+
+      - name: Lint mobile
+        run: npm run lint
+        working-directory: mobile
+
+      - name: Typecheck
+        run: npm run typecheck
+        working-directory: mobile
+
+      - name: Test
+        run: npm run test
+        working-directory: mobile
+
+  publish-web:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [backend]
+    runs-on: ubuntu-latest
+    env:
+      ConnectionStrings__Default: ${{ secrets.ConnectionStrings__Default }}
+      Jwt__Key: ${{ secrets.Jwt__Key }}
+      Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
+      Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        run: dotnet restore Education.sln
+
+      - name: Ensure required secrets
+        shell: bash
+        run: |
+          if [ -z "$ConnectionStrings__Default" ]; then
+            echo "Missing ConnectionStrings__Default"; exit 1; fi
+          if [ -z "$Jwt__Key" ]; then
+            echo "Missing Jwt__Key"; exit 1; fi
+
+      - name: Write production appsettings
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          base_path = Path("backend/src/Api/appsettings.json")
+          data = json.loads(base_path.read_text(encoding="utf-8-sig"))
+
+          data.setdefault("ConnectionStrings", {})
+          data["ConnectionStrings"]["Default"] = os.environ["ConnectionStrings__Default"]
+
+          data.setdefault("Jwt", {})
+          data["Jwt"]["Key"] = os.environ["Jwt__Key"]
+
+          email = data.get("Email")
+          if isinstance(email, dict):
+            smtp_user = os.environ.get("Email__SmtpUser")
+            smtp_pass = os.environ.get("Email__SmtpPass")
+            if smtp_user is not None:
+              email["SmtpUser"] = smtp_user
+            if smtp_pass is not None:
+              email["SmtpPass"] = smtp_pass
+
+          prod_path = Path("backend/src/Api/appsettings.Production.json")
+          prod_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+          PY
+
+      - name: Publish
+        run: dotnet publish backend/src/Api/Api.csproj -c Release -o ./publish --framework net10.0 --no-restore
+
+      - name: Upload publish artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-publish
+          path: publish
+          if-no-files-found: error
+
+  deploy-netlify:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [frontend]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download frontend artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist
+          path: dist
+
+      - name: Deploy to Netlify
+        uses: nwtgck/actions-netlify@v3
+        with:
+          publish-dir: dist
+          production-deploy: true
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+
+  deploy-monsterasp:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [publish-web]
+    runs-on: windows-latest
+    env:
+      ConnectionStrings__Default: ${{ secrets.ConnectionStrings__Default }}
+      Jwt__Key: ${{ secrets.Jwt__Key }}
+      Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
+      Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
+      Email__FromEmail: ${{ secrets.Email__FromEmail }}
+      Diagnostics__IncludeExceptionDetails: ${{ vars.DIAGNOSTICS_INCLUDE_EXCEPTION_DETAILS }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download publish artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-publish
+          path: publish
+
+      - name: Inject runtime secrets
+        shell: pwsh
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:ConnectionStrings__Default)) {
+            Write-Error "Missing ConnectionStrings__Default"; exit 1
+          }
+          if ([string]::IsNullOrWhiteSpace($env:Jwt__Key)) {
+            Write-Error "Missing Jwt__Key"; exit 1
+          }
+
+          $settings = @{
+            ConnectionStrings = @{ Default = $env:ConnectionStrings__Default }
+            Jwt = @{ Key = $env:Jwt__Key }
+          }
+
+          $email = @{}
+          if (-not [string]::IsNullOrWhiteSpace($env:Email__SmtpUser)) { $email.SmtpUser = $env:Email__SmtpUser }
+          if (-not [string]::IsNullOrWhiteSpace($env:Email__SmtpPass)) { $email.SmtpPass = $env:Email__SmtpPass }
+          if (-not [string]::IsNullOrWhiteSpace($env:Email__FromEmail)) { $email.FromEmail = $env:Email__FromEmail }
+          if ($email.Count -gt 0) { $settings.Email = $email }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:Diagnostics__IncludeExceptionDetails)) {
+            $includeDetails = $false
+            if ([bool]::TryParse($env:Diagnostics__IncludeExceptionDetails, [ref]$includeDetails)) {
+              $settings.Diagnostics = @{ IncludeExceptionDetails = $includeDetails }
+            }
+          }
+
+          $json = $settings | ConvertTo-Json -Depth 5
+          $json | Set-Content -Path publish/appsettings.Production.json -NoNewline
+
+      - name: Deploy to MonsterASP.NET via WebDeploy
+        uses: rasmusbuchholdt/simply-web-deploy@2.2.0
+        with:
+          website-name: ${{ secrets.WEBSITE_NAME }}
+          server-computer-name: ${{ secrets.SERVER_COMPUTER_NAME }}
+          server-username: ${{ secrets.SERVER_USERNAME }}
+          server-password: ${{ secrets.SERVER_PASSWORD }}
+          source-path: 'publish'
+
+  deploy-firebase-app-distribution:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: [mobile]
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      FIREBASE_APP_ID_ANDROID: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+      FIREBASE_TESTERS: ${{ secrets.FIREBASE_TESTERS }}
+      FIREBASE_GROUPS: ${{ secrets.FIREBASE_GROUPS }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      EAS_NO_VCS: 1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install deps
+        run: npm ci
+        working-directory: mobile
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Ensure required secrets
+        shell: bash
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "Missing EXPO_TOKEN"; exit 1; fi
+          if [ -z "$FIREBASE_APP_ID_ANDROID" ]; then
+            echo "Missing FIREBASE_APP_ID_ANDROID"; exit 1; fi
+          if [ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]; then
+            echo "Missing FIREBASE_SERVICE_ACCOUNT_JSON"; exit 1; fi
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ]; then
+            echo "Missing ANDROID_KEYSTORE_BASE64"; exit 1; fi
+          if [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            echo "Missing ANDROID_KEYSTORE_PASSWORD"; exit 1; fi
+          if [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "Missing ANDROID_KEY_PASSWORD"; exit 1; fi
+          if [ -z "$ANDROID_KEY_ALIAS" ]; then
+            echo "Missing ANDROID_KEY_ALIAS"; exit 1; fi
+
+      - name: Prepare Android keystore (local credentials)
+        shell: bash
+        run: |
+          mkdir -p mobile/android/keystores
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 -d > mobile/android/keystores/release.keystore
+          cat > mobile/credentials.json <<EOF
+          {"android":{"keystore":{"keystorePath":"android/keystores/release.keystore","keystorePassword":"${ANDROID_KEYSTORE_PASSWORD}","keyAlias":"${ANDROID_KEY_ALIAS}","keyPassword":"${ANDROID_KEY_PASSWORD}"}}}
+          EOF
+
+      - name: Build Android (EAS)
+        working-directory: mobile
+        run: eas build --platform android --profile preview --non-interactive --wait
+
+      - name: Download APK
+        working-directory: mobile
+        shell: bash
+        run: |
+          mkdir -p build
+          eas --version || true
+          output=$(eas build:list --platform android --limit 1 --build-profile preview --json --non-interactive 2>&1) || rc=$?
+          rc=${rc:-0}
+          if [ "$rc" -ne 0 ]; then
+            echo "EAS command failed with exit code $rc"
+            echo "$output"
+            exit $rc
+          fi
+          build_url=$(printf '%s' "$output" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const start=d.search(/[\\[\\{]/);const end=Math.max(d.lastIndexOf(']'),d.lastIndexOf('}'));if(start===-1||end<start){console.error('No JSON found in EAS output');console.error(d);process.exit(2);}const json=d.slice(start,end+1).trim();let data;try{data=JSON.parse(json||'[]')}catch(e){console.error('EAS output is not JSON:',json);process.exit(2);}const url=data?.[0]?.artifacts?.buildUrl||data?.[0]?.artifacts?.applicationArchiveUrl;if(!url){console.error('Missing buildUrl in EAS build list output');process.exit(1);}console.log(url);});")
+          echo "Downloading APK from $build_url"
+          curl -L -H "Authorization: Bearer $EXPO_TOKEN" -o build/app.apk "$build_url"
+
+      - name: Write Firebase service account
+        shell: bash
+        run: |
+          echo "$FIREBASE_SERVICE_ACCOUNT_JSON" > firebase-service-account.json
+
+      - name: Upload to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID_ANDROID }}
+          serviceCredentialsFile: firebase-service-account.json
+          file: mobile/build/app.apk
+          releaseNotes: "Automated build from GitHub Actions"
+          testers: ${{ secrets.FIREBASE_TESTERS }}
+          groups: ${{ secrets.FIREBASE_GROUPS }}
