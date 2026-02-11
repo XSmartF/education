@@ -76,10 +76,19 @@ jobs:
 
       - name: Download APK
         working-directory: mobile
+        shell: bash
         run: |
           mkdir -p build
           eas --version || true
-          build_url=$(eas build:list --platform android --limit 1 --build-profile preview --json | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const data=JSON.parse(d||'[]');const url=data?.[0]?.artifacts?.buildUrl||data?.[0]?.artifacts?.applicationArchiveUrl; if(!url){console.error('Missing buildUrl in EAS build list output'); process.exit(1);} console.log(url);});")
+          # Capture EAS output and exit code before attempting to parse JSON
+          output=$(eas build:list --platform android --limit 1 --build-profile preview --json 2>&1) || rc=$?
+          rc=${rc:-0}
+          if [ "$rc" -ne 0 ]; then
+            echo "EAS command failed with exit code $rc"
+            echo "$output"
+            exit $rc
+          fi
+          build_url=$(echo "$output" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{let data;try{data=JSON.parse(d||'[]')}catch(e){console.error('EAS output is not JSON:',d);process.exit(2);}const url=data?.[0]?.artifacts?.buildUrl||data?.[0]?.artifacts?.applicationArchiveUrl;if(!url){console.error('Missing buildUrl in EAS build list output');process.exit(1);}console.log(url);});")
           echo "Downloading APK from $build_url"
           curl -L -H "Authorization: Bearer $EXPO_TOKEN" -o build/app.apk "$build_url"
 
