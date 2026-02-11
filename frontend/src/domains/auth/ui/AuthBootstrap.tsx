@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useAppDispatch } from '@/app/store/hooks';
 import { clearSession, setAuthenticated } from '@/domains/auth/store/auth-slice';
-import { refreshAccessToken, registerAuthStateHandler } from '@/shared/api/http-client';
+import { authTokenStore, refreshAccessToken, registerAuthStateHandler } from '@/shared/api/http-client';
 
 export function AuthBootstrap() {
   const dispatch = useAppDispatch();
