@@ -88,7 +88,7 @@ jobs:
             echo "$output"
             exit $rc
           fi
-          build_url=$(echo "$output" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{let data;try{data=JSON.parse(d||'[]')}catch(e){console.error('EAS output is not JSON:',d);process.exit(2);}const url=data?.[0]?.artifacts?.buildUrl||data?.[0]?.artifacts?.applicationArchiveUrl;if(!url){console.error('Missing buildUrl in EAS build list output');process.exit(1);}console.log(url);});")
+          build_url=$(printf '%s' "$output" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const start=d.search(/[\\[\\{]/);const end=Math.max(d.lastIndexOf(']'),d.lastIndexOf('}'));if(start===-1||end<start){console.error('No JSON found in EAS output');console.error(d);process.exit(2);}const json=d.slice(start,end+1).trim();let data;try{data=JSON.parse(json||'[]')}catch(e){console.error('EAS output is not JSON:',json);process.exit(2);}const url=data?.[0]?.artifacts?.buildUrl||data?.[0]?.artifacts?.applicationArchiveUrl;if(!url){console.error('Missing buildUrl in EAS build list output');process.exit(1);}console.log(url);});")
           echo "Downloading APK from $build_url"
           curl -L -H "Authorization: Bearer $EXPO_TOKEN" -o build/app.apk "$build_url"
 
