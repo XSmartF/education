@@ -81,7 +81,7 @@ jobs:
           mkdir -p build
           eas --version || true
           # Capture EAS output and exit code before attempting to parse JSON
-          output=$(eas build:list --platform android --limit 1 --build-profile preview --json 2>&1) || rc=$?
+          output=$(eas build:list --platform android --limit 1 --build-profile preview --json --non-interactive 2>&1) || rc=$?
           rc=${rc:-0}
           if [ "$rc" -ne 0 ]; then
             echo "EAS command failed with exit code $rc"
