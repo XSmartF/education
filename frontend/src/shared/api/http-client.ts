@@ -8,6 +8,8 @@ const API_BASE =
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'X-CSRF-Token';
 const DEVICE_HEADER = 'X-Device-Id';
+const ACCESS_TOKEN_KEY = 'education.access_token';
+const REFRESH_TOKEN_KEY = 'education.refresh_token';
 
 const SAFE_METHODS = new Set(['get', 'head', 'options']);
 
@@ -15,6 +17,78 @@ type AuthStateHandler = (isAuthenticated: boolean) => void;
 
 let authStateHandler: AuthStateHandler | null = null;
 let refreshPromise: Promise<boolean> | null = null;
+
+let accessTokenCache: string | null = null;
+let refreshTokenCache: string | null = null;
+
+const safeStorage = {
+  get: (key: string) => {
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return null;
+    }
+  },
+  set: (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch {
+      // ignore storage failures (private mode, blocked, etc.)
+    }
+  },
+  remove: (key: string) => {
+    try {
+      localStorage.removeItem(key);
+    } catch {
+      // ignore storage failures
+    }
+  },
+};
+
+const ensureTokenCache = () => {
+  if (typeof localStorage === 'undefined') return;
+  if (accessTokenCache === null) {
+    accessTokenCache = safeStorage.get(ACCESS_TOKEN_KEY);
+  }
+  if (refreshTokenCache === null) {
+    refreshTokenCache = safeStorage.get(REFRESH_TOKEN_KEY);
+  }
+};
+
+const getStoredAccessToken = () => {
+  if (accessTokenCache === null) {
+    ensureTokenCache();
+  }
+  return accessTokenCache ?? '';
+};
+
+const getStoredRefreshToken = () => {
+  if (refreshTokenCache === null) {
+    ensureTokenCache();
+  }
+  return refreshTokenCache ?? '';
+};
+
+export const authTokenStore = {
+  setTokens: (accessToken?: string, refreshToken?: string) => {
+    if (typeof accessToken === 'string') {
+      accessTokenCache = accessToken;
+      accessToken ? safeStorage.set(ACCESS_TOKEN_KEY, accessToken) : safeStorage.remove(ACCESS_TOKEN_KEY);
+    }
+    if (typeof refreshToken === 'string') {
+      refreshTokenCache = refreshToken;
+      refreshToken ? safeStorage.set(REFRESH_TOKEN_KEY, refreshToken) : safeStorage.remove(REFRESH_TOKEN_KEY);
+    }
+  },
+  clear: () => {
+    accessTokenCache = '';
+    refreshTokenCache = '';
+    safeStorage.remove(ACCESS_TOKEN_KEY);
+    safeStorage.remove(REFRESH_TOKEN_KEY);
+  },
+  getAccessToken: getStoredAccessToken,
+  getRefreshToken: getStoredRefreshToken,
+};
 
 export const registerAuthStateHandler = (handler: AuthStateHandler) => {
   authStateHandler = handler;
@@ -49,6 +123,14 @@ const applySecurityHeaders = (config: InternalAxiosRequestConfig) => {
     const csrfToken = getCookieValue(CSRF_COOKIE);
     if (csrfToken && !headers[CSRF_HEADER]) {
       headers[CSRF_HEADER] = csrfToken;
+    }
+  }
+
+  const url = String(config.url ?? '');
+  if (!headers.Authorization && !url.includes('/auth/')) {
+    const accessToken = getStoredAccessToken();
+    if (accessToken) {
+      headers.Authorization = `Bearer ${accessToken}`;
     }
   }
 
@@ -125,6 +207,16 @@ type RefreshTokenResponse = {
   refreshTokenExpiresAt: string;
 };
 
+type AuthTokens = RefreshTokenResponse;
+
+const maybeStoreAuthTokens = (value: unknown) => {
+  if (!value || typeof value !== 'object') return;
+  const data = value as Partial<AuthTokens>;
+  if (typeof data.accessToken === 'string' && typeof data.refreshToken === 'string') {
+    authTokenStore.setTokens(data.accessToken, data.refreshToken);
+  }
+};
+
 async function refreshAccessToken(): Promise<boolean> {
   if (refreshPromise) {
     return refreshPromise;
@@ -132,12 +224,20 @@ async function refreshAccessToken(): Promise<boolean> {
 
   refreshPromise = (async () => {
     try {
-      const response = await refreshClient.post<ApiResponse<RefreshTokenResponse>>('/auth/refresh', {});
+      const refreshToken = authTokenStore.getRefreshToken();
+      const body = refreshToken ? { refreshToken } : {};
+      const response = await refreshClient.post<ApiResponse<RefreshTokenResponse>>('/auth/refresh', body);
       const payload = response.data as ApiResponse<RefreshTokenResponse>;
       const ok = payload?.success === true;
+      if (ok) {
+        maybeStoreAuthTokens(payload.data);
+      } else {
+        authTokenStore.clear();
+      }
       authStateHandler?.(ok);
       return ok;
     } catch {
+      authTokenStore.clear();
       authStateHandler?.(false);
       return false;
     } finally {
@@ -189,6 +289,7 @@ async function unwrap<T>(promise: Promise<AxiosResponse<T>>) {
     if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
       const api = payload as ApiResponse<T>;
       if (api.success) {
+        maybeStoreAuthTokens(api.data);
         return api.data as T;
       }
       const message = getApiErrorMessage(api.error) || 'Co loi xay ra';

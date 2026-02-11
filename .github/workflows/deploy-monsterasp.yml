@@ -21,6 +21,7 @@ jobs:
       Email__SmtpUser: ${{ secrets.Email__SmtpUser }}
       Email__SmtpPass: ${{ secrets.Email__SmtpPass }}
       Email__FromEmail: ${{ secrets.Email__FromEmail }}
+      Diagnostics__IncludeExceptionDetails: ${{ vars.DIAGNOSTICS_INCLUDE_EXCEPTION_DETAILS }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,6 +63,13 @@ jobs:
           if (-not [string]::IsNullOrWhiteSpace($env:Email__SmtpPass)) { $email.SmtpPass = $env:Email__SmtpPass }
           if (-not [string]::IsNullOrWhiteSpace($env:Email__FromEmail)) { $email.FromEmail = $env:Email__FromEmail }
           if ($email.Count -gt 0) { $settings.Email = $email }
+
+          if (-not [string]::IsNullOrWhiteSpace($env:Diagnostics__IncludeExceptionDetails)) {
+            $includeDetails = $false
+            if ([bool]::TryParse($env:Diagnostics__IncludeExceptionDetails, [ref]$includeDetails)) {
+              $settings.Diagnostics = @{ IncludeExceptionDetails = $includeDetails }
+            }
+          }
 
           $json = $settings | ConvertTo-Json -Depth 5
           $json | Set-Content -Path publish/appsettings.Production.json -NoNewline

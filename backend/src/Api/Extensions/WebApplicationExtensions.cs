@@ -1,4 +1,5 @@
 using Education.Api.Middleware;
+using Microsoft.AspNetCore.HttpOverrides;
 
 namespace Education.Api.Extensions;
 
@@ -6,6 +7,7 @@ public static class WebApplicationExtensions
 {
     public static WebApplication UseApiPipeline(this WebApplication app)
     {
+        app.UseForwardedHeaders();
         app.UseRequestLocalization();
         app.UseRateLimiter();
         app.UseCors("Default");

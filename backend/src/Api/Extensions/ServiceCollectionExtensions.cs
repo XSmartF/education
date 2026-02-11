@@ -3,7 +3,9 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using Education.Api.Authorization;
 using Education.Api.Contracts;
+using Education.Api.Options;
 using Education.Infrastructure.Identity;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -15,6 +17,14 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApiServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<DiagnosticsOptions>(configuration.GetSection("Diagnostics"));
+        services.Configure<ForwardedHeadersOptions>(options =>
+        {
+            options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            options.KnownNetworks.Clear();
+            options.KnownProxies.Clear();
+        });
+
         services.AddControllers()
             .ConfigureApiBehaviorOptions(options =>
             {
