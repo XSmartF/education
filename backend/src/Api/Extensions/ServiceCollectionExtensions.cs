@@ -5,6 +5,7 @@ using Education.Api.Authorization;
 using Education.Api.Contracts;
 using Education.Api.Options;
 using Education.Infrastructure.Identity;
+using Education.Infrastructure.Auth;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
@@ -77,7 +78,8 @@ public static class ServiceCollectionExtensions
                     policy.WithOrigins(origins)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
-                        .AllowCredentials();
+                        .AllowCredentials()
+                        .WithExposedHeaders(AuthCookieNames.CsrfHeader);
                 }
             });
         });
