@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -74,9 +74,7 @@ export default function TodoDetailPage() {
     },
   });
 
-  if (!auth.isAuthenticated) {
-    return <Navigate to="/login" />;
-  }
+  // access control handled by router/RequireAuth wrapper
 
   if (isLoading) {
     return <p className="text-sm text-muted-foreground">{translate('loading')}</p>;

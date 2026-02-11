@@ -9,6 +9,7 @@ import ForgotPasswordPage from '@/domains/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/domains/auth/pages/ResetPasswordPage';
 import TodosPage from '@/domains/todos/pages/TodosPage';
 import TodoDetailPage from '@/domains/todos/pages/TodoDetailPage';
+import RequireAuth from './RequireAuth';
 import NotFoundPage from '../pages/NotFoundPage';
 
 const rootRoute = createRootRoute({
@@ -61,13 +62,13 @@ const resetPasswordRoute = createRoute({
 const todosRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: 'todos',
-  component: TodosPage,
+  component: () => <RequireAuth Component={TodosPage} />,
 });
 
 const todoDetailRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: 'todos/$todoId',
-  component: TodoDetailPage,
+  component: () => <RequireAuth Component={TodoDetailPage} />,
 });
 
 const routeTree = rootRoute.addChildren([
