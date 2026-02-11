@@ -4,12 +4,14 @@ export type AuthState = {
   isAuthenticated: boolean;
   accessToken?: string | null;
   refreshToken?: string | null;
+  bootstrapping?: boolean;
 };
 
 const initialState: AuthState = {
   isAuthenticated: false,
   accessToken: null,
   refreshToken: null,
+  bootstrapping: true,
 };
 
 const authSlice = createSlice({
@@ -18,6 +20,10 @@ const authSlice = createSlice({
   reducers: {
     setAuthenticated: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
+      state.bootstrapping = false;
+    },
+    setBootstrapping: (state, action: PayloadAction<boolean>) => {
+      state.bootstrapping = action.payload;
     },
     setTokens: (
       state,
@@ -30,9 +36,10 @@ const authSlice = createSlice({
       state.isAuthenticated = false;
       state.accessToken = null;
       state.refreshToken = null;
+      state.bootstrapping = false;
     },
   },
 });
 
-export const { setAuthenticated, setTokens, clearSession } = authSlice.actions;
+export const { setAuthenticated, setTokens, clearSession, setBootstrapping } = authSlice.actions;
 export default authSlice.reducer;
