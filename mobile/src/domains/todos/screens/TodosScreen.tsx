@@ -1,4 +1,4 @@
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Screen } from '@/app/Screen';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
@@ -18,12 +18,26 @@ export default function TodosScreen({ navigation }: Props) {
       title={translate('app:title')}
       subtitle={translate('app:taglineMobile')}
       action={
-        <TouchableOpacity
-          style={[styles.btn, styles.btnGhost, styles.headerAction]}
-          onPress={auth.signOut}
-        >
-          <Text style={styles.btnText}>{translate('nav:logout')}</Text>
-        </TouchableOpacity>
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnGhost, styles.headerAction]}
+            onPress={() => navigation.navigate('Courses')}
+          >
+            <Text style={styles.btnText}>{translate('nav:courses')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnGhost, styles.headerAction]}
+            onPress={() => navigation.navigate('Files')}
+          >
+            <Text style={styles.btnText}>{translate('nav:files')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnGhost, styles.headerAction]}
+            onPress={auth.signOut}
+          >
+            <Text style={styles.btnText}>{translate('nav:logout')}</Text>
+          </TouchableOpacity>
+        </View>
       }
     >
       <TodoList

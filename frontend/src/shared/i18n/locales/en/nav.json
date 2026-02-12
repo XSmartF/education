@@ -1,6 +1,13 @@
-{
+﻿{
   "todos": "Todos",
+  "files": "Files",
+  "courses": "Courses",
+  "decks": "Decks",
+  "marketplace": "Marketplace",
+  "wallet": "Wallet",
+  "reputation": "Reputation",
   "login": "Sign in",
   "register": "Sign up",
   "logout": "Sign out"
 }
+

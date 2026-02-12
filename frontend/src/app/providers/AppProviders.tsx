@@ -9,7 +9,7 @@ import { router } from '../routes/router';
 import { store } from '../store/store';
 import { queryClient } from '../query/query-client';
 
-import { CToaster } from '@/shared/components';
+import { Toaster } from '@/shared/ui';
 import { AuthBootstrap } from '@/domains/auth/ui/AuthBootstrap';
 import { useAppSelector } from '@/app/store/hooks';
 
@@ -32,7 +32,7 @@ function AppShell() {
     <>
       <AuthBootstrap />
       {!bootstrapping && <RouterProvider router={router} />}
-      <CToaster />
+      <Toaster />
 
       <BootstrappingOverlay loading={bootstrapping} />
 
@@ -58,3 +58,4 @@ function BootstrappingOverlay({ loading }: { loading: boolean }) {
     </div>
   );
 }
+

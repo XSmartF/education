@@ -38,6 +38,12 @@ type ErrorResponse = {
   error?: ApiError;
 };
 
+const isStringValue = (value: unknown): value is string =>
+  Object.prototype.toString.call(value) === '[object String]';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  Object.prototype.toString.call(value) === '[object Object]';
+
 function flattenErrors(errors?: ErrorBag) {
   if (!errors) return '';
   if (Array.isArray(errors)) return errors.join(', ');
@@ -47,23 +53,23 @@ function flattenErrors(errors?: ErrorBag) {
 
 function getApiErrorMessage(error?: ApiError) {
   if (!error) return '';
-  if (typeof error.message === 'string' && error.message.trim()) return error.message;
+  if (isStringValue(error.message) && error.message.trim()) return error.message;
   const errorList = flattenErrors(error.errors);
   return errorList || '';
 }
 
 function getErrorMessage(payload: unknown) {
-  if (!payload || typeof payload !== 'object') return '';
+  if (!isRecord(payload)) return '';
   const data = payload as ErrorResponse;
   if (data.error) {
     const message = getApiErrorMessage(data.error);
     if (message) return message;
   }
-  if (typeof data.detail === 'string' && data.detail.trim()) return data.detail;
-  if (typeof data.message === 'string' && data.message.trim()) return data.message;
+  if (isStringValue(data.detail) && data.detail.trim()) return data.detail;
+  if (isStringValue(data.message) && data.message.trim()) return data.message;
   const errors = flattenErrors(data.errors);
   if (errors) return errors;
-  if (typeof data.title === 'string' && data.title.trim()) return data.title;
+  if (isStringValue(data.title) && data.title.trim()) return data.title;
   return '';
 }
 
@@ -168,7 +174,7 @@ async function requestJson<T>(path: string, options: RequestInit) {
   }
 
   const payload = (await response.json()) as unknown;
-  if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
+  if (isRecord(payload) && 'success' in payload && 'data' in payload) {
     const api = payload as ApiResponse<T>;
     if (api.success) {
       return api.data as T;
@@ -180,14 +186,20 @@ async function requestJson<T>(path: string, options: RequestInit) {
   return payload as T;
 }
 
+function toRequestBody(body?: unknown) {
+  if (!body) return undefined;
+  if (body instanceof FormData) return body;
+  return JSON.stringify(body);
+}
+
 export const api = {
   get: <T>(path: string) => requestJson<T>(path, { method: 'GET' }),
   post: <T>(path: string, body?: unknown) =>
-    requestJson<T>(path, { method: 'POST', body: body ? JSON.stringify(body) : undefined }),
+    requestJson<T>(path, { method: 'POST', body: toRequestBody(body) }),
   put: <T>(path: string, body?: unknown) =>
-    requestJson<T>(path, { method: 'PUT', body: body ? JSON.stringify(body) : undefined }),
+    requestJson<T>(path, { method: 'PUT', body: toRequestBody(body) }),
   patch: <T>(path: string, body?: unknown) =>
-    requestJson<T>(path, { method: 'PATCH', body: body ? JSON.stringify(body) : undefined }),
+    requestJson<T>(path, { method: 'PATCH', body: toRequestBody(body) }),
   delete: <T>(path: string) => requestJson<T>(path, { method: 'DELETE' }),
   upload: <T>(path: string, form: FormData) =>
     requestJson<T>(path, { method: 'POST', body: form }),

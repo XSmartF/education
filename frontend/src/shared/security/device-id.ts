@@ -6,8 +6,9 @@ export function getDeviceId(): string {
     return existing;
   }
 
-  const generated = typeof crypto !== 'undefined' && 'randomUUID' in crypto
-    ? crypto.randomUUID()
+  const hasRandomUuid = 'crypto' in globalThis && 'randomUUID' in globalThis.crypto;
+  const generated = hasRandomUuid
+    ? globalThis.crypto.randomUUID()
     : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   localStorage.setItem(DEVICE_KEY, generated);

@@ -19,6 +19,31 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       outDir: 'dist',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (!id.includes('node_modules')) {
+              return;
+            }
+
+            if (id.includes('@tanstack')) {
+              return 'tanstack';
+            }
+
+            if (id.includes('@radix-ui')) {
+              return 'radix';
+            }
+
+            if (id.includes('react-hook-form') || id.includes('@hookform')) {
+              return 'forms';
+            }
+
+            if (id.includes('zod')) {
+              return 'validation';
+            }
+          },
+        },
+      },
     },
     resolve: {
       alias: {

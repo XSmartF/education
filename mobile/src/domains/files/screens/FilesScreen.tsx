@@ -1,0 +1,49 @@
+import { Text, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { Screen } from '@/app/Screen';
+import { useAuth } from '@/domains/auth/hooks/use-auth';
+import { FileList } from '@/domains/files/ui/FileList';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/app/types';
+import { styles } from '@/shared/ui/styles';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'Files'>;
+
+export default function FilesScreen({ navigation }: Props) {
+  const { t: translate } = useTranslation(['app', 'nav']);
+  const auth = useAuth();
+
+  return (
+    <Screen
+      title={translate('app:title')}
+      subtitle={translate('app:taglineMobile')}
+      action={
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnGhost, styles.headerAction]}
+            onPress={() => navigation.navigate('Courses')}
+          >
+            <Text style={styles.btnText}>{translate('nav:courses')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnGhost, styles.headerAction]}
+            onPress={() => navigation.navigate('Todos')}
+          >
+            <Text style={styles.btnText}>{translate('nav:todos')}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.btn, styles.btnGhost, styles.headerAction]}
+            onPress={auth.signOut}
+          >
+            <Text style={styles.btnText}>{translate('nav:logout')}</Text>
+          </TouchableOpacity>
+        </View>
+      }
+    >
+      <FileList
+        canEdit={auth.isAuthenticated}
+        onOpen={(id) => navigation.navigate('FileDetail', { fileId: id })}
+      />
+    </Screen>
+  );
+}

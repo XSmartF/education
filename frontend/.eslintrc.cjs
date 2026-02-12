@@ -28,7 +28,15 @@ module.exports = {
   },
   rules: {
     'react/react-in-jsx-scope': 'off',
+    'react/prop-types': 'off',
     '@typescript-eslint/no-explicit-any': 'error',
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: 'UnaryExpression[operator="typeof"]',
+        message: 'Do not use typeof. Use explicit guards/helpers.',
+      },
+    ],
     'unicorn/filename-case': [
       'error',
       {

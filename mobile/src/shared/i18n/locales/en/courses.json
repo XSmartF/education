@@ -1,0 +1,16 @@
+﻿{
+  "title": "Courses",
+  "subtitle": "Create and join courses in the learning economy.",
+  "catalog": "Catalog",
+  "myCourses": "My courses",
+  "publish": "Publish",
+  "details": "Details",
+  "enroll": "Enroll",
+  "addModule": "Add module",
+  "moduleTitle": "Module title",
+  "addLesson": "Add lesson",
+  "lessonTitle": "Lesson title",
+  "module": "Module",
+  "modulesList": "Modules",
+  "noLessons": "No lesson"
+}

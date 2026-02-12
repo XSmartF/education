@@ -1,0 +1,23 @@
+{
+  "title": "Tep",
+  "detailTitle": "Chi tiet tep",
+  "detailSubtitle": "Xem va thay the tep",
+  "readOnly": "Chi doc",
+  "fileName": "Ten tep",
+  "content": "Noi dung",
+  "uploadFilePlaceholder": "vi-du.txt",
+  "uploadContentPlaceholder": "Nhap noi dung tep",
+  "uploadButton": "Tai len",
+  "loading": "Dang tai...",
+  "detail": "Chi tiet",
+  "download": "Tai xuong",
+  "replace": "Thay the",
+  "remove": "Xoa",
+  "back": "Quay lai",
+  "empty": "Chua co tep nao.",
+  "notFound": "Khong tim thay tep.",
+  "createdAt": "Ngay tao",
+  "size": "Dung luong",
+  "contentType": "Loai tep",
+  "downloaded": "Da tai"
+}

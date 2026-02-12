@@ -1,0 +1,20 @@
+﻿{
+  "title": "Wallet",
+  "subtitle": "Top up, purchase, and withdraw your balance.",
+  "balance": "Balance",
+  "topUp": "Top up",
+  "requestWithdrawal": "Request withdrawal",
+  "pendingWithdrawals": "Pending withdrawals",
+  "transactions": "Transactions",
+  "amount": "Amount",
+  "note": "Note",
+  "type": "Type",
+  "description": "Description",
+  "time": "Time",
+  "userId": "User ID",
+  "status": "Status",
+  "approve": "Approve",
+  "reject": "Reject",
+  "noPending": "No pending withdrawal."
+}
+

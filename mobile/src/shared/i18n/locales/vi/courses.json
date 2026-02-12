@@ -1,0 +1,16 @@
+﻿{
+  "title": "Khoa hoc",
+  "subtitle": "Tao va tham gia khoa hoc trong learning economy.",
+  "catalog": "Danh muc",
+  "myCourses": "Khoa hoc cua toi",
+  "publish": "Xuat ban",
+  "details": "Chi tiet",
+  "enroll": "Tham gia",
+  "addModule": "Them module",
+  "moduleTitle": "Ten module",
+  "addLesson": "Them bai hoc",
+  "lessonTitle": "Ten bai hoc",
+  "module": "Module",
+  "modulesList": "Danh sach module",
+  "noLessons": "Chua co bai hoc"
+}

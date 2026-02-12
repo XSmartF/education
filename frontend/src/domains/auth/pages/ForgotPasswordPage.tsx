@@ -6,25 +6,26 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { authApi } from '@/domains/auth/api/auth-api';
 import {
-  CButton,
-  CCard,
-  CCardContent,
-  CCardFooter,
-  CCardHeader,
-  CCardTitle,
-  CForm,
-  CFormControl,
-  CFormField,
-  CFormItem,
-  CFormLabel,
-  CFormMessage,
-  CInput,
-} from '@/shared/components';
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+} from '@/shared/ui';
 import { toast } from '@/shared/hooks/use-toast';
 
 export default function ForgotPasswordPage() {
   const { t: translate } = useTranslation(['auth', 'errors']);
   const navigate = useNavigate();
+  type FormValues = { email: string };
 
   const schema = useMemo(
     () =>
@@ -36,8 +37,6 @@ export default function ForgotPasswordPage() {
       }),
     [translate]
   );
-
-  type FormValues = z.infer<typeof schema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -59,40 +58,41 @@ export default function ForgotPasswordPage() {
   });
 
   return (
-    <CCard className="max-w-md">
-      <CCardHeader>
-        <CCardTitle>{translate('auth:forgotPasswordTitle')}</CCardTitle>
-      </CCardHeader>
-      <CCardContent className="grid gap-4">
-        <CForm {...form}>
+    <Card className="max-w-md">
+      <CardHeader>
+        <CardTitle>{translate('auth:forgotPasswordTitle')}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <Form {...form}>
           <form className="grid gap-4" onSubmit={submit}>
-            <CFormField
+            <FormField
               control={form.control}
               name="email"
               render={({ field }) => (
-                <CFormItem>
-                  <CFormLabel>{translate('auth:email')}</CFormLabel>
-                  <CFormControl>
-                    <CInput type="email" autoComplete="email" {...field} />
-                  </CFormControl>
-                  <CFormMessage />
-                </CFormItem>
+                <FormItem>
+                  <FormLabel>{translate('auth:email')}</FormLabel>
+                  <FormControl>
+                    <Input type="email" autoComplete="email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             {form.formState.errors.root?.message && (
               <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
             )}
-            <CButton type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {translate('auth:forgotPasswordButton')}
-            </CButton>
+            </Button>
           </form>
-        </CForm>
-      </CCardContent>
-      <CCardFooter className="flex flex-col gap-2">
-        <CButton variant="link" className="w-full" onClick={() => navigate({ to: '/login' })}>
+        </Form>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-2">
+        <Button variant="link" className="w-full" onClick={() => navigate({ to: '/login' })}>
           {translate('auth:backToLogin')}
-        </CButton>
-      </CCardFooter>
-    </CCard>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
+

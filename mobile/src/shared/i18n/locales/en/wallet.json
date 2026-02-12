@@ -1,0 +1,11 @@
+﻿{
+  "title": "Wallet",
+  "subtitle": "Top up and withdraw from your wallet.",
+  "balance": "Balance",
+  "topUp": "Top up",
+  "requestWithdrawal": "Request withdrawal",
+  "transactions": "Transactions",
+  "pendingWithdrawals": "Pending withdrawals",
+  "approve": "Approve",
+  "reject": "Reject"
+}

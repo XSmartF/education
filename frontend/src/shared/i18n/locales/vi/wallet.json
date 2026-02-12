@@ -1,0 +1,20 @@
+﻿{
+  "title": "Vi",
+  "subtitle": "Nap tien, mua tai nguyen va rut tien trong he thong.",
+  "balance": "So du",
+  "topUp": "Nap tien",
+  "requestWithdrawal": "Yeu cau rut tien",
+  "pendingWithdrawals": "Yeu cau rut dang cho",
+  "transactions": "Giao dich",
+  "amount": "So tien",
+  "note": "Ghi chu",
+  "type": "Loai",
+  "description": "Mo ta",
+  "time": "Thoi gian",
+  "userId": "Ma nguoi dung",
+  "status": "Trang thai",
+  "approve": "Duyet",
+  "reject": "Tu choi",
+  "noPending": "Khong co yeu cau cho duyet."
+}
+

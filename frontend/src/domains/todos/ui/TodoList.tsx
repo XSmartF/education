@@ -5,19 +5,19 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useTodos } from '../hooks/use-todos';
 import {
-  CBadge,
-  CButton,
-  CCard,
-  CCardContent,
-  CCardHeader,
-  CCardTitle,
-  CForm,
-  CFormControl,
-  CFormField,
-  CFormItem,
-  CFormMessage,
-  CInput,
-} from '@/shared/components';
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+  Input,
+} from '@/shared/ui';
 
 type Props = {
   canEdit: boolean;
@@ -26,12 +26,11 @@ type Props = {
 export function TodoList({ canEdit }: Props) {
   const { t: translate } = useTranslation('todos');
   const { items, loading, error, add, toggle, remove } = useTodos();
+  type TodoFormValues = { title: string };
 
   const todoSchema = z.object({
     title: z.string().trim().min(1, translate('titleRequired')),
   });
-
-  type TodoFormValues = z.infer<typeof todoSchema>;
 
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoSchema),
@@ -49,46 +48,47 @@ export function TodoList({ canEdit }: Props) {
   });
 
   return (
-    <CCard>
-      <CCardHeader className="flex flex-row items-center justify-between">
-        <CCardTitle>{translate('title')}</CCardTitle>
-        {!canEdit && <CBadge variant="secondary">{translate('readOnly')}</CBadge>}
-      </CCardHeader>
-      <CCardContent className="space-y-4">
-        <CForm {...form}>
+    <Card className="border-primary/10 bg-card/90">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>{translate('title')}</CardTitle>
+        {!canEdit && <Badge variant="secondary">{translate('readOnly')}</Badge>}
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Form {...form}>
           <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row sm:items-start">
-            <CFormField
+            <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
-                <CFormItem className="w-full">
-                  <CFormControl>
-                    <CInput
+                <FormItem className="w-full">
+                  <FormControl>
+                    <Input
                       placeholder={translate('addPlaceholder')}
                       disabled={!canEdit}
                       {...field}
                     />
-                  </CFormControl>
-                  <CFormMessage />
-                </CFormItem>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            <CButton type="submit" disabled={!canEdit || form.formState.isSubmitting}>
+            <Button type="submit" disabled={!canEdit || form.formState.isSubmitting}>
               {translate('addButton')}
-            </CButton>
+            </Button>
           </form>
-        </CForm>
+        </Form>
 
         {loading && <p className="text-sm text-muted-foreground">{translate('loading')}</p>}
         {error && <p className="text-sm text-destructive">{error}</p>}
+        {!loading && !items.length && <p className="text-sm text-muted-foreground">{translate('empty')}</p>}
 
         <ul className="space-y-2">
           {items.map((item) => (
             <li
               key={item.id}
-              className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between"
+              className="flex flex-col gap-3 rounded-lg border bg-muted/20 p-3 transition-colors hover:bg-muted/40 sm:flex-row sm:items-center sm:justify-between"
             >
-              <CButton
+              <Button
                 type="button"
                 variant="ghost"
                 disabled={!canEdit}
@@ -100,23 +100,24 @@ export function TodoList({ canEdit }: Props) {
                 onClick={() => canEdit && toggle(item)}
               >
                 {item.title}
-              </CButton>
+              </Button>
               <div className="flex flex-wrap items-center gap-2">
-                <CButton asChild variant="ghost" size="sm">
+                <Button asChild variant="ghost" size="sm">
                   <Link to="/todos/$todoId" params={{ todoId: item.id }}>
                     {translate('detail')}
                   </Link>
-                </CButton>
+                </Button>
                 {canEdit && (
-                  <CButton variant="destructive" size="sm" onClick={() => remove(item.id)}>
+                  <Button variant="destructive" size="sm" onClick={() => remove(item.id)}>
                     {translate('remove')}
-                  </CButton>
+                  </Button>
                 )}
               </div>
             </li>
           ))}
         </ul>
-      </CCardContent>
-    </CCard>
+      </CardContent>
+    </Card>
   );
 }
+

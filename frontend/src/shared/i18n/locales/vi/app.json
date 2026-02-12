@@ -1,4 +1,14 @@
-{
+﻿{
   "title": "Education",
-  "tagline": "Clean Architecture + Vite + .NET 10"
+  "tagline": "Learning Economy Platform",
+  "heroTitle": "Bien viec hoc thanh tai san tang truong",
+  "heroDescription": "Tao khoa hoc, xuat ban deck va van hanh nen kinh te noi bo bang vi.",
+  "featureCourses": "He thong khoa hoc theo cau truc module va bai hoc.",
+  "featureMarketplace": "Marketplace cho khoa hoc/deck co tinh commission nen tang.",
+  "featureWallet": "Vi tich hop cho nap tien, mua hang va yeu cau rut tien.",
+  "featureTasks": "Theo doi todos voi man hinh chi tiet va cap nhat nhanh.",
+  "featureFiles": "Tai len, thay the va tai xuong tep qua API bao mat.",
+  "featureSecurity": "Tu dong refresh token va ho tro CSRF mac dinh.",
+  "guestHint": "Dang nhap de mo khoa day du cac module Learning Economy."
 }
+

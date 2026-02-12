@@ -1,4 +1,14 @@
-{
+﻿{
   "title": "Education",
-  "tagline": "Clean Architecture + Vite + .NET 10"
+  "tagline": "Learning Economy Platform",
+  "heroTitle": "Turn learning into a compounding asset",
+  "heroDescription": "Build courses, publish decks, and run a real internal economy with wallet-based transactions.",
+  "featureCourses": "Structured course system with modules, lessons, and enrollments.",
+  "featureMarketplace": "Course/deck marketplace with platform commission and purchase flow.",
+  "featureWallet": "Integrated wallet for top-up, purchase, and withdrawal requests.",
+  "featureTasks": "Track todos with detail view and quick updates.",
+  "featureFiles": "Upload, replace, and download files with secured APIs.",
+  "featureSecurity": "Token refresh + CSRF-aware requests by default.",
+  "guestHint": "Sign in to unlock the full learning economy modules."
 }
+

@@ -9,5 +9,6 @@ public static class ApiErrorCodes
     public const string Conflict = "conflict";
     public const string BadRequest = "bad_request";
     public const string LockedOut = "locked_out";
+    public const string InsufficientFunds = "insufficient_funds";
     public const string ServerError = "server_error";
 }

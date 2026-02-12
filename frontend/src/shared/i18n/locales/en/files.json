@@ -1,0 +1,19 @@
+{
+  "title": "Files",
+  "subtitle": "Manage uploaded learning files and metadata.",
+  "detailTitle": "File details",
+  "detailSubtitle": "Replace file content or download current version.",
+  "readOnly": "Read only",
+  "uploadButton": "Upload",
+  "loading": "Loading...",
+  "detail": "Details",
+  "download": "Download",
+  "replace": "Replace",
+  "remove": "Delete",
+  "empty": "No files yet.",
+  "back": "Back",
+  "notFound": "File not found.",
+  "createdAt": "Created at",
+  "size": "Size",
+  "contentType": "Content type"
+}

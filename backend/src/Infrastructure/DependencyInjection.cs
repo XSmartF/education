@@ -103,6 +103,10 @@ public static class DependencyInjection
 
         services.AddScoped<ITodoRepository, TodoRepository>();
         services.AddScoped<IFileRepository, FileRepository>();
+        services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<IDeckRepository, DeckRepository>();
+        services.AddScoped<IWalletRepository, WalletRepository>();
+        services.AddScoped<IReputationRepository, ReputationRepository>();
         services.AddScoped<IFileStorage, LocalFileStorage>();
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         services.AddScoped<IRefreshTokenService, RefreshTokenService>();

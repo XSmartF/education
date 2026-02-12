@@ -1,5 +1,11 @@
-{
+﻿{
   "todos": "Todos",
+  "files": "Tep",
+  "courses": "Khoa hoc",
+  "decks": "Deck",
+  "marketplace": "Marketplace",
+  "wallet": "Vi",
+  "reputation": "Uy tin",
   "login": "Dang nhap",
   "register": "Dang ky",
   "logout": "Dang xuat"

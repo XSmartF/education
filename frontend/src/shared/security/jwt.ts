@@ -8,13 +8,16 @@ const STAFF_ROLES = new Set(['Admin', 'Teacher', 'Organize']);
 
 type JwtPayload = Record<string, unknown>;
 
+const isStringValue = (value: unknown): value is string =>
+  Object.prototype.toString.call(value) === '[object String]';
+
 const decodeBase64Url = (input: string): string => {
   const normalized = input.replace(/-/g, '+').replace(/_/g, '/');
   const padded = normalized.padEnd(Math.ceil(normalized.length / 4) * 4, '=');
-  if (typeof atob === 'undefined') {
+  if (!('atob' in globalThis)) {
     return '';
   }
-  const decoded = atob(padded);
+  const decoded = globalThis.atob(padded);
   try {
     return decodeURIComponent(
       decoded
@@ -46,12 +49,14 @@ export const decodeJwtPayload = (token: string): JwtPayload | null => {
 };
 
 const normalizeRoles = (value: unknown): string[] => {
-  if (typeof value === 'string') {
-    return [value];
+  if (isStringValue(value)) {
+    return [String(value)];
   }
 
   if (Array.isArray(value)) {
-    return value.filter((item): item is string => typeof item === 'string');
+    return value
+      .filter((item): item is string => isStringValue(item))
+      .map((item) => String(item));
   }
 
   return [];

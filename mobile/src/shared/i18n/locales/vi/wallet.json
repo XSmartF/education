@@ -1,0 +1,11 @@
+﻿{
+  "title": "Vi",
+  "subtitle": "Nap tien va rut tien tu vi cua ban.",
+  "balance": "So du",
+  "topUp": "Nap tien",
+  "requestWithdrawal": "Yeu cau rut tien",
+  "transactions": "Giao dich",
+  "pendingWithdrawals": "Yeu cau rut cho duyet",
+  "approve": "Duyet",
+  "reject": "Tu choi"
+}

@@ -1,0 +1,23 @@
+{
+  "title": "Files",
+  "detailTitle": "File details",
+  "detailSubtitle": "View and replace file",
+  "readOnly": "Read only",
+  "fileName": "File name",
+  "content": "Content",
+  "uploadFilePlaceholder": "example.txt",
+  "uploadContentPlaceholder": "Input file content",
+  "uploadButton": "Upload",
+  "loading": "Loading...",
+  "detail": "Details",
+  "download": "Download",
+  "replace": "Replace",
+  "remove": "Delete",
+  "back": "Back",
+  "empty": "No files yet.",
+  "notFound": "File not found.",
+  "createdAt": "Created at",
+  "size": "Size",
+  "contentType": "Content type",
+  "downloaded": "Downloaded"
+}

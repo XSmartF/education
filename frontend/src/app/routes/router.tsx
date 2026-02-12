@@ -1,4 +1,4 @@
-import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
+import { createRootRoute, createRoute, createRouter, type AnyRouter } from '@tanstack/react-router';
 import RootLayout from '../layout/RootLayout';
 import DashboardLayout from '../layout/DashboardLayout';
 import SimpleLayout from '../layout/SimpleLayout';
@@ -9,6 +9,15 @@ import ForgotPasswordPage from '@/domains/auth/pages/ForgotPasswordPage';
 import ResetPasswordPage from '@/domains/auth/pages/ResetPasswordPage';
 import TodosPage from '@/domains/todos/pages/TodosPage';
 import TodoDetailPage from '@/domains/todos/pages/TodoDetailPage';
+import FilesPage from '@/domains/files/pages/FilesPage';
+import FileDetailPage from '@/domains/files/pages/FileDetailPage';
+import CoursesPage from '@/domains/courses/pages/CoursesPage';
+import CourseDetailPage from '@/domains/courses/pages/CourseDetailPage';
+import DecksPage from '@/domains/decks/pages/DecksPage';
+import DeckDetailPage from '@/domains/decks/pages/DeckDetailPage';
+import MarketplacePage from '@/domains/marketplace/pages/MarketplacePage';
+import WalletPage from '@/domains/wallet/pages/WalletPage';
+import ReputationPage from '@/domains/reputation/pages/ReputationPage';
 import RequireAuth from './RequireAuth';
 import NotFoundPage from '../pages/NotFoundPage';
 
@@ -29,50 +38,58 @@ const simpleLayoutRoute = createRoute({
   component: SimpleLayout,
 });
 
+const createDashboardRoute = (path: string, component: () => JSX.Element) =>
+  createRoute({
+    getParentRoute: () => dashboardLayoutRoute,
+    path,
+    component,
+  });
+
+const createSimpleRoute = (path: string, component: () => JSX.Element) =>
+  createRoute({
+    getParentRoute: () => simpleLayoutRoute,
+    path,
+    component,
+  });
+
 const homeRoute = createRoute({
   getParentRoute: () => dashboardLayoutRoute,
   path: '/',
   component: HomePage,
 });
 
-const loginRoute = createRoute({
-  getParentRoute: () => simpleLayoutRoute,
-  path: 'login',
-  component: LoginPage,
-});
+const loginRoute = createSimpleRoute('login', LoginPage);
+const registerRoute = createSimpleRoute('register', RegisterPage);
+const forgotPasswordRoute = createSimpleRoute('forgot-password', ForgotPasswordPage);
+const resetPasswordRoute = createSimpleRoute('reset-password', ResetPasswordPage);
 
-const registerRoute = createRoute({
-  getParentRoute: () => simpleLayoutRoute,
-  path: 'register',
-  component: RegisterPage,
-});
-
-const forgotPasswordRoute = createRoute({
-  getParentRoute: () => simpleLayoutRoute,
-  path: 'forgot-password',
-  component: ForgotPasswordPage,
-});
-
-const resetPasswordRoute = createRoute({
-  getParentRoute: () => simpleLayoutRoute,
-  path: 'reset-password',
-  component: ResetPasswordPage,
-});
-
-const todosRoute = createRoute({
-  getParentRoute: () => dashboardLayoutRoute,
-  path: 'todos',
-  component: () => <RequireAuth Component={TodosPage} />,
-});
-
-const todoDetailRoute = createRoute({
-  getParentRoute: () => dashboardLayoutRoute,
-  path: 'todos/$todoId',
-  component: () => <RequireAuth Component={TodoDetailPage} />,
-});
+const todosRoute = createDashboardRoute('todos', () => <RequireAuth Component={TodosPage} />);
+const todoDetailRoute = createDashboardRoute('todos/$todoId', () => <RequireAuth Component={TodoDetailPage} />);
+const filesRoute = createDashboardRoute('files', () => <RequireAuth Component={FilesPage} />);
+const fileDetailRoute = createDashboardRoute('files/$fileId', () => <RequireAuth Component={FileDetailPage} />);
+const coursesRoute = createDashboardRoute('courses', () => <RequireAuth Component={CoursesPage} />);
+const courseDetailRoute = createDashboardRoute('courses/$courseId', () => <RequireAuth Component={CourseDetailPage} />);
+const decksRoute = createDashboardRoute('decks', () => <RequireAuth Component={DecksPage} />);
+const deckDetailRoute = createDashboardRoute('decks/$deckId', () => <RequireAuth Component={DeckDetailPage} />);
+const marketplaceRoute = createDashboardRoute('marketplace', () => <RequireAuth Component={MarketplacePage} />);
+const walletRoute = createDashboardRoute('wallet', () => <RequireAuth Component={WalletPage} />);
+const reputationRoute = createDashboardRoute('reputation', () => <RequireAuth Component={ReputationPage} />);
 
 const routeTree = rootRoute.addChildren([
-  dashboardLayoutRoute.addChildren([homeRoute, todosRoute, todoDetailRoute]),
+  dashboardLayoutRoute.addChildren([
+    homeRoute,
+    coursesRoute,
+    courseDetailRoute,
+    decksRoute,
+    deckDetailRoute,
+    marketplaceRoute,
+    walletRoute,
+    reputationRoute,
+    todosRoute,
+    todoDetailRoute,
+    filesRoute,
+    fileDetailRoute,
+  ]),
   simpleLayoutRoute.addChildren([loginRoute, registerRoute, forgotPasswordRoute, resetPasswordRoute]),
 ]);
 
@@ -80,8 +97,10 @@ export const router = createRouter({
   routeTree,
 });
 
+type AppRouter = AnyRouter;
+
 declare module '@tanstack/react-router' {
   interface Register {
-    router: typeof router;
+    router: AppRouter;
   }
 }

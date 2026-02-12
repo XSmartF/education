@@ -6,6 +6,7 @@ import type { AuthResponse } from '../model/types';
 import { styles } from '@/shared/ui/styles';
 
 type AuthMode = 'login' | 'register';
+type UserRole = 'Student' | 'Teacher' | 'Organize';
 
 type Props = {
   onAuth: (session: AuthResponse) => void;
@@ -28,6 +29,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [role, setRole] = useState<UserRole>('Student');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -38,7 +40,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
     setError('');
     try {
       if (activeMode === 'register') {
-        const res = await authApi.register({ email, password, displayName });
+        const res = await authApi.register({ email, password, displayName, role });
         onAuth(res);
       } else {
         const res = await authApi.login({ email, password });
@@ -60,6 +62,19 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
         <>
           <Text style={styles.label}>{translate('auth:displayName')}</Text>
           <TextInput style={styles.input} value={displayName} onChangeText={setDisplayName} />
+          <Text style={styles.label}>{translate('auth:roleLabel')}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+            <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={() => setRole('Student')}>
+              <Text style={styles.btnText}>{translate('auth:roleStudent')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={() => setRole('Teacher')}>
+              <Text style={styles.btnText}>{translate('auth:roleTeacher')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.btn, styles.btnGhost]} onPress={() => setRole('Organize')}>
+              <Text style={styles.btnText}>{translate('auth:roleOrganize')}</Text>
+            </TouchableOpacity>
+          </View>
+          <Text style={styles.subtitle}>{role}</Text>
         </>
       )}
       <Text style={styles.label}>{translate('auth:password')}</Text>

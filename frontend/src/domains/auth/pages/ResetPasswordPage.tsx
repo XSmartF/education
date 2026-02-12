@@ -6,20 +6,20 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { authApi } from '@/domains/auth/api/auth-api';
 import {
-  CButton,
-  CCard,
-  CCardContent,
-  CCardFooter,
-  CCardHeader,
-  CCardTitle,
-  CForm,
-  CFormControl,
-  CFormField,
-  CFormItem,
-  CFormLabel,
-  CFormMessage,
-  CInput,
-} from '@/shared/components';
+  Button,
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+  Input,
+} from '@/shared/ui';
 import { toast } from '@/shared/hooks/use-toast';
 
 type ResetSearchState = {
@@ -28,11 +28,11 @@ type ResetSearchState = {
 };
 
 function readResetSearch(): ResetSearchState {
-  if (typeof window === 'undefined') {
+  if (!('window' in globalThis)) {
     return { userId: '', token: '' };
   }
 
-  const params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(globalThis.window.location.search);
   return {
     userId: params.get('userId') ?? '',
     token: params.get('token') ?? '',
@@ -43,6 +43,12 @@ export default function ResetPasswordPage() {
   const { t: translate } = useTranslation(['auth', 'errors']);
   const navigate = useNavigate();
   const search = useMemo(readResetSearch, []);
+  type FormValues = {
+    userId: string;
+    token: string;
+    password: string;
+    confirmPassword: string;
+  };
 
   const schema = useMemo(
     () =>
@@ -59,8 +65,6 @@ export default function ResetPasswordPage() {
         }),
     [translate]
   );
-
-  type FormValues = z.infer<typeof schema>;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -89,79 +93,80 @@ export default function ResetPasswordPage() {
   });
 
   return (
-    <CCard className="max-w-md">
-      <CCardHeader>
-        <CCardTitle>{translate('auth:resetPasswordTitle')}</CCardTitle>
-      </CCardHeader>
-      <CCardContent className="grid gap-4">
-        <CForm {...form}>
+    <Card className="max-w-md">
+      <CardHeader>
+        <CardTitle>{translate('auth:resetPasswordTitle')}</CardTitle>
+      </CardHeader>
+      <CardContent className="grid gap-4">
+        <Form {...form}>
           <form className="grid gap-4" onSubmit={submit}>
-            <CFormField
+            <FormField
               control={form.control}
               name="userId"
               render={({ field }) => (
-                <CFormItem>
-                  <CFormLabel>{translate('auth:resetUserId')}</CFormLabel>
-                  <CFormControl>
-                    <CInput readOnly={Boolean(search.userId)} {...field} />
-                  </CFormControl>
-                  <CFormMessage />
-                </CFormItem>
+                <FormItem>
+                  <FormLabel>{translate('auth:resetUserId')}</FormLabel>
+                  <FormControl>
+                    <Input readOnly={Boolean(search.userId)} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            <CFormField
+            <FormField
               control={form.control}
               name="token"
               render={({ field }) => (
-                <CFormItem>
-                  <CFormLabel>{translate('auth:resetToken')}</CFormLabel>
-                  <CFormControl>
-                    <CInput readOnly={Boolean(search.token)} {...field} />
-                  </CFormControl>
-                  <CFormMessage />
-                </CFormItem>
+                <FormItem>
+                  <FormLabel>{translate('auth:resetToken')}</FormLabel>
+                  <FormControl>
+                    <Input readOnly={Boolean(search.token)} {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            <CFormField
+            <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
-                <CFormItem>
-                  <CFormLabel>{translate('auth:newPassword')}</CFormLabel>
-                  <CFormControl>
-                    <CInput type="password" autoComplete="new-password" {...field} />
-                  </CFormControl>
-                  <CFormMessage />
-                </CFormItem>
+                <FormItem>
+                  <FormLabel>{translate('auth:newPassword')}</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
-            <CFormField
+            <FormField
               control={form.control}
               name="confirmPassword"
               render={({ field }) => (
-                <CFormItem>
-                  <CFormLabel>{translate('auth:confirmPassword')}</CFormLabel>
-                  <CFormControl>
-                    <CInput type="password" autoComplete="new-password" {...field} />
-                  </CFormControl>
-                  <CFormMessage />
-                </CFormItem>
+                <FormItem>
+                  <FormLabel>{translate('auth:confirmPassword')}</FormLabel>
+                  <FormControl>
+                    <Input type="password" autoComplete="new-password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
             />
             {form.formState.errors.root?.message && (
               <p className="text-sm text-destructive">{form.formState.errors.root.message}</p>
             )}
-            <CButton type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+            <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
               {translate('auth:resetPasswordButton')}
-            </CButton>
+            </Button>
           </form>
-        </CForm>
-      </CCardContent>
-      <CCardFooter className="flex flex-col gap-2">
-        <CButton variant="link" className="w-full" onClick={() => navigate({ to: '/login' })}>
+        </Form>
+      </CardContent>
+      <CardFooter className="flex flex-col gap-2">
+        <Button variant="link" className="w-full" onClick={() => navigate({ to: '/login' })}>
           {translate('auth:backToLogin')}
-        </CButton>
-      </CCardFooter>
-    </CCard>
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
+

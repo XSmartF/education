@@ -1,4 +1,10 @@
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  AxiosRequestConfig,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import { toast } from '@/shared/hooks/use-toast';
 import { getDeviceId } from '@/shared/security/device-id';
 import { store } from '@/app/store/store';
@@ -10,12 +16,15 @@ const API_BASE =
 const CSRF_COOKIE = 'XSRF-TOKEN';
 const CSRF_HEADER = 'X-CSRF-Token';
 const DEVICE_HEADER = 'X-Device-Id';
+const AUTH_PATHS = [
+  '/auth/refresh',
+  '/auth/login',
+  '/auth/register',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
 
-const SAFE_METHODS = new Set(['get', 'head', 'options']);
-
-type AuthStateHandler = (isAuthenticated: boolean) => void;
-
-let authStateHandler: AuthStateHandler | null = null;
+let authStateHandler: ((isAuthenticated: boolean) => void) | null = null;
 let refreshPromise: Promise<boolean> | null = null;
 
 const getStoredAccessToken = () => store.getState().auth.accessToken ?? '';
@@ -32,72 +41,32 @@ export const authTokenStore = {
   getRefreshToken: getStoredRefreshToken,
 };
 
-export const registerAuthStateHandler = (handler: AuthStateHandler) => {
+export const registerAuthStateHandler = (handler: (isAuthenticated: boolean) => void) => {
   authStateHandler = handler;
 };
 
-const client = axios.create({
+const baseConfig: AxiosRequestConfig = {
   baseURL: API_BASE,
   withCredentials: true,
-});
-
-const refreshClient = axios.create({
-  baseURL: API_BASE,
-  withCredentials: true,
-});
-
-const getCookieValue = (name: string): string => {
-  if (typeof document === 'undefined') return '';
-  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const match = document.cookie.match(new RegExp(`(?:^|; )${escaped}=([^;]*)`));
-  return match ? decodeURIComponent(match[1]) : '';
+  xsrfCookieName: CSRF_COOKIE,
+  xsrfHeaderName: CSRF_HEADER,
 };
 
-export const getCsrfToken = () => {
-  return typeof document === 'undefined' ? '' : getCookieValue(CSRF_COOKIE);
-};
+const client = axios.create(baseConfig);
+const refreshClient = axios.create(baseConfig);
+const retriedRequests = new WeakSet<InternalAxiosRequestConfig>();
 
 const applySecurityHeaders = (config: InternalAxiosRequestConfig) => {
-  config.headers = config.headers ?? {};
-  const headers = config.headers as Record<string, string>;
-  if (!headers[DEVICE_HEADER]) {
-    headers[DEVICE_HEADER] = getDeviceId();
-  }
-
-  const method = (config.method ?? 'get').toLowerCase();
-  if (!SAFE_METHODS.has(method)) {
-    const csrfToken = getCookieValue(CSRF_COOKIE);
-    // Debug: log CSRF cookie/header for troubleshooting CSRF validation failures
-    try {
-      // eslint-disable-next-line no-console
-      console.debug('[http-client] CSRF cookie:', csrfToken);
-    } catch (err) {
-      // swallow errors reading console for environments without console
-      // eslint-disable-next-line no-console
-      console.debug('[http-client] debug log failed:', err);
-    }
-
-    if (csrfToken && !headers[CSRF_HEADER]) {
-      headers[CSRF_HEADER] = csrfToken;
-    } else if (!csrfToken) {
-      try {
-        // eslint-disable-next-line no-console
-        console.debug('[http-client] No CSRF cookie found to attach');
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.debug('[http-client] debug log failed:', err);
-      }
-    }
-  }
+  const headers = AxiosHeaders.from(config.headers);
+  if (!headers.has(DEVICE_HEADER)) headers.set(DEVICE_HEADER, getDeviceId());
 
   const url = String(config.url ?? '');
-  if (!headers.Authorization && !url.includes('/auth/')) {
-    const accessToken = getStoredAccessToken();
-    if (accessToken) {
-      headers.Authorization = `Bearer ${accessToken}`;
-    }
+  const accessToken = getStoredAccessToken();
+  if (accessToken && !headers.has('Authorization') && !url.includes('/auth/')) {
+    headers.setAuthorization(`Bearer ${accessToken}`);
   }
 
+  config.headers = headers;
   return config;
 };
 
@@ -106,219 +75,149 @@ refreshClient.interceptors.request.use(applySecurityHeaders);
 
 client.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const original = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
-    const status = error.response?.status;
-
+  async (error: AxiosError) => {
+    const original = error.config;
     const url = String(original?.url ?? '');
-    const isAuthRequest =
-      url.includes('/auth/refresh') ||
-      url.includes('/auth/login') ||
-      url.includes('/auth/register') ||
-      url.includes('/auth/forgot-password') ||
-      url.includes('/auth/reset-password');
-    if (status === 401 && original && !original._retry && !isAuthRequest) {
-      original._retry = true;
-      const ok = await refreshAccessToken();
-      if (ok) {
-        return client(original);
-      }
+    const isAuthRequest = AUTH_PATHS.some((path) => url.includes(path));
+
+    if (error.response?.status !== 401 || !original || retriedRequests.has(original) || isAuthRequest) {
+      return Promise.reject(error);
     }
 
-    return Promise.reject(error);
+    retriedRequests.add(original);
+    const ok = await refreshAccessToken();
+    return ok ? client.request(original) : Promise.reject(error);
   }
 );
 
-type ErrorBag = string[] | Record<string, string[]>;
+const flattenErrors = (errors: unknown) =>
+  Array.isArray(errors)
+    ? errors.map((item) => String(item ?? '')).filter(Boolean).join(', ')
+    : Object.values((errors ?? {}) as Record<string, unknown>)
+        .flatMap((value) => (Array.isArray(value) ? value : [value]))
+        .map((item) => String(item ?? ''))
+        .filter(Boolean)
+        .join(', ');
 
-type ApiError = {
-  code?: string;
-  message?: string;
-  errors?: ErrorBag;
+const toApiErrorMessage = (error: unknown) => {
+  const payload = (error ?? {}) as Record<string, unknown>;
+  return String(payload.message ?? '') || flattenErrors(payload.errors);
 };
-
-type ApiResponse<T> = {
-  success?: boolean;
-  data?: T;
-  error?: ApiError;
-};
-
-type ErrorResponse = {
-  title?: string;
-  detail?: string;
-  message?: string;
-  errors?: ErrorBag;
-  error?: ApiError;
-};
-
-function flattenErrors(errors?: ErrorBag) {
-  if (!errors) return '';
-  if (Array.isArray(errors)) return errors.join(', ');
-  const flattened = Object.values(errors).flat().filter(Boolean);
-  return flattened.length ? flattened.join(', ') : '';
-}
-
-function getApiErrorMessage(error?: ApiError) {
-  if (!error) return '';
-  if (typeof error.message === 'string' && error.message.trim()) return error.message;
-  const errorList = flattenErrors(error.errors);
-  return errorList || '';
-}
-
-type RefreshTokenResponse = {
-  accessToken: string;
-  refreshToken: string;
-  refreshTokenExpiresAt: string;
-};
-
-type AuthTokens = RefreshTokenResponse;
 
 const maybeStoreAuthTokens = (value: unknown) => {
-  if (!value || typeof value !== 'object') return;
-  const data = value as Partial<AuthTokens>;
-  if (typeof data.accessToken === 'string' && typeof data.refreshToken === 'string') {
-    authTokenStore.setTokens(data.accessToken, data.refreshToken);
-  }
+  const payload = (value ?? {}) as Record<string, unknown>;
+  const accessToken = payload.accessToken;
+  const refreshToken = payload.refreshToken;
+
+  if (!accessToken || !refreshToken) return;
+  authTokenStore.setTokens(String(accessToken), String(refreshToken));
 };
 
 async function refreshAccessToken(): Promise<boolean> {
-  if (refreshPromise) {
-    return refreshPromise;
-  }
+  if (refreshPromise) return refreshPromise;
 
-  refreshPromise = (async () => {
-    try {
-      const response = await refreshClient.post<ApiResponse<RefreshTokenResponse>>('/auth/refresh');
-      const payload = response.data as ApiResponse<RefreshTokenResponse>;
-      const ok = payload?.success === true;
-      if (ok) {
-        maybeStoreAuthTokens(payload.data);
-      } else {
-        authTokenStore.clear();
-      }
+  refreshPromise = refreshClient
+    .post<unknown>('/auth/refresh')
+    .then((response) => {
+      const payload = (response.data ?? {}) as Record<string, unknown>;
+      const ok = payload.success === true;
+
+      if (ok) maybeStoreAuthTokens(payload.data);
+      if (!ok) authTokenStore.clear();
       authStateHandler?.(ok);
       return ok;
-    } catch {
+    })
+    .catch(() => {
       authTokenStore.clear();
       authStateHandler?.(false);
       return false;
-    } finally {
+    })
+    .finally(() => {
       refreshPromise = null;
-    }
-  })();
+    });
 
   return refreshPromise;
 }
 
-function toErrorMessage(error: unknown) {
-  if (axios.isAxiosError(error)) {
-    const err = error as AxiosError;
-    const data = err.response?.data as unknown;
-    if (typeof data === 'string') return data;
-    if (typeof Blob !== 'undefined' && data instanceof Blob) {
-      return err.response?.statusText || err.message;
-    }
+const toErrorMessage = (error: unknown) => {
+  if (!axios.isAxiosError(error)) return error instanceof Error ? error.message : 'Co loi xay ra';
 
-    if (data && typeof data === 'object') {
-      const payload = data as ErrorResponse;
-      if (payload.error) {
-        const apiMessage = getApiErrorMessage(payload.error);
-        if (apiMessage) return apiMessage;
+  const data = (error.response?.data ?? {}) as Record<string, unknown>;
+  const nestedError = (data.error ?? {}) as Record<string, unknown>;
+  const message =
+    String(nestedError.message ?? '') ||
+    String(data.detail ?? '') ||
+    String(data.message ?? '') ||
+    flattenErrors(nestedError.errors ?? data.errors) ||
+    String(data.title ?? '') ||
+    error.response?.statusText ||
+    error.message;
+
+  return message || 'Co loi xay ra';
+};
+
+const unwrap = <T, D = unknown>(promise: Promise<AxiosResponse<T, D>>) =>
+  promise
+    .then((res) => {
+      const payload = (res.data ?? {}) as Record<string, unknown>;
+      if (!('success' in payload && 'data' in payload)) return res.data;
+      if (payload.success !== true) {
+        const message = toApiErrorMessage(payload.error) || 'Co loi xay ra';
+        toast({ variant: 'destructive', description: message });
+        throw new Error(message);
       }
-      if (typeof payload.detail === 'string' && payload.detail.trim()) return payload.detail;
-      if (typeof payload.message === 'string' && payload.message.trim()) return payload.message;
 
-      const errorList = flattenErrors(payload.errors);
-      if (errorList) return errorList;
-
-      if (typeof payload.title === 'string' && payload.title.trim()) return payload.title;
-    }
-
-    return err.response?.statusText || err.message;
-  }
-
-  if (error instanceof Error) {
-    return error.message;
-  }
-
-  return 'Co loi xay ra';
-}
-
-async function unwrap<T>(promise: Promise<AxiosResponse<T>>) {
-  try {
-    const res = await promise;
-    // If server provides CSRF token header, mirror it into a readable cookie so client code
-    // (and subsequent requests) can access it when needed.
-    try {
-      const header = (res.headers as Record<string, unknown>)['x-csrf-token'] as string | undefined;
-      if (header && typeof document !== 'undefined') {
-        try {
-          document.cookie = `${CSRF_COOKIE}=${encodeURIComponent(header)}; path=/`;
-        } catch (err) {
-          // document.cookie may throw in some environments
-          // eslint-disable-next-line no-console
-          console.debug('[http-client] failed to set CSRF cookie from header:', err);
-        }
-      }
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.debug('[http-client] failed to read x-csrf-token header:', err);
-    }
-    const payload = res.data as unknown;
-    if (payload && typeof payload === 'object' && 'success' in payload && 'data' in payload) {
-      const api = payload as ApiResponse<T>;
-      if (api.success) {
-        maybeStoreAuthTokens(api.data);
-        return api.data as T;
-      }
-      const message = getApiErrorMessage(api.error) || 'Co loi xay ra';
-      toast({ variant: 'destructive', description: message });
-      throw new Error(message);
-    }
-
-    return res.data;
-  } catch (error) {
-    const message = toErrorMessage(error);
-    toast({ variant: 'destructive', description: message });
-    throw new Error(message);
-  }
-}
-
-export const api = {
-  get: <T>(path: string) => unwrap<T>(client.get<T>(path)),
-  post: <T>(path: string, body?: unknown) => unwrap<T>(client.post<T>(path, body)),
-  put: <T>(path: string, body?: unknown) => unwrap<T>(client.put<T>(path, body)),
-  patch: <T>(path: string, body?: unknown) => unwrap<T>(client.patch<T>(path, body)),
-  delete: <T>(path: string) => unwrap<T>(client.delete<T>(path)),
-  upload: <T>(
-    path: string,
-    file: File,
-    options?: { fieldName?: string; extra?: Record<string, string | Blob> }
-  ) => {
-    const form = new FormData();
-    const fieldName = options?.fieldName ?? 'file';
-    form.append(fieldName, file);
-    if (options?.extra) {
-      Object.entries(options.extra).forEach(([key, value]) => form.append(key, value));
-    }
-
-    return unwrap<T>(client.post<T>(path, form));
-  },
-  download: async (path: string) => {
-    try {
-      const res = await client.get<Blob>(path, { responseType: 'blob' });
-      const contentType = res.headers['content-type'] ?? 'application/octet-stream';
-      const disposition = res.headers['content-disposition'] ?? '';
-      const match = /filename\*=UTF-8''([^;]+)|filename="?([^;"]+)"?/i.exec(disposition);
-      const fileName = match ? decodeURIComponent(match[1] || match[2]) : 'download';
-
-      return { blob: res.data, fileName, contentType };
-    } catch (error) {
+      maybeStoreAuthTokens(payload.data);
+      return payload.data as T;
+    })
+    .catch((error) => {
       const message = toErrorMessage(error);
       toast({ variant: 'destructive', description: message });
       throw new Error(message);
-    }
+    });
+
+const toHeaderString = (value: unknown) =>
+  Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '');
+
+export const api = {
+  request: <T, D = unknown>(config: AxiosRequestConfig<D>) =>
+    unwrap<T, D>(client.request<T, AxiosResponse<T, D>, D>(config)),
+  get: <T, D = unknown>(path: string, config?: AxiosRequestConfig<D>) =>
+    unwrap<T, D>(client.get<T, AxiosResponse<T, D>, D>(path, config)),
+  post: <T, D = unknown>(path: string, body?: D, config?: AxiosRequestConfig<D>) =>
+    unwrap<T, D>(client.post<T, AxiosResponse<T, D>, D>(path, body, config)),
+  put: <T, D = unknown>(path: string, body?: D, config?: AxiosRequestConfig<D>) =>
+    unwrap<T, D>(client.put<T, AxiosResponse<T, D>, D>(path, body, config)),
+  patch: <T, D = unknown>(path: string, body?: D, config?: AxiosRequestConfig<D>) =>
+    unwrap<T, D>(client.patch<T, AxiosResponse<T, D>, D>(path, body, config)),
+  delete: <T, D = unknown>(path: string, config?: AxiosRequestConfig<D>) =>
+    unwrap<T, D>(client.delete<T, AxiosResponse<T, D>, D>(path, config)),
+  upload: <T>(path: string, file: File, config?: AxiosRequestConfig<FormData>) => {
+    const form = new FormData();
+    form.append('file', file);
+    return unwrap<T, FormData>(
+      client.post<T, AxiosResponse<T, FormData>, FormData>(path, form, config)
+    );
   },
+  download: (path: string, config?: AxiosRequestConfig<never>) =>
+    client
+      .get<Blob, AxiosResponse<Blob>, never>(path, {
+        ...config,
+        responseType: 'blob',
+      })
+      .then((res) => {
+        const contentType = toHeaderString(res.headers['content-type']) || 'application/octet-stream';
+        const disposition = toHeaderString(res.headers['content-disposition']);
+        const match = /filename\*=UTF-8''([^;]+)|filename="?([^;"]+)"?/i.exec(disposition);
+        const fileName = match ? decodeURIComponent(match[1] || match[2]) : 'download';
+
+        return { blob: res.data, fileName, contentType };
+      })
+      .catch((error) => {
+        const message = toErrorMessage(error);
+        toast({ variant: 'destructive', description: message });
+        throw new Error(message);
+      }),
 };
 
 export { refreshAccessToken };

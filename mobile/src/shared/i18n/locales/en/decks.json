@@ -1,0 +1,12 @@
+﻿{
+  "title": "Decks",
+  "subtitle": "Build and publish flashcard decks.",
+  "myDecks": "My decks",
+  "publishedDecks": "Published decks",
+  "publish": "Publish",
+  "details": "Details",
+  "addCard": "Add card",
+  "frontText": "Front text",
+  "backText": "Back text",
+  "cardsList": "Cards"
+}
