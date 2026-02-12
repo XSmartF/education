@@ -11,33 +11,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  paths:
-    runs-on: ubuntu-latest
-    outputs:
-      frontend: ${{ steps.filter.outputs.frontend }}
-      backend: ${{ steps.filter.outputs.backend }}
-      mobile: ${{ steps.filter.outputs.mobile }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - id: filter
-        uses: dorny/paths-filter@v2
-        with:
-          filters: |
-            frontend:
-              - 'frontend/**'
-              - 'package.json'
-            backend:
-              - 'backend/**'
-              - '**/*.csproj'
-              - 'Directory.Packages.props'
-              - 'Directory.Build.props'
-            mobile:
-              - 'mobile/**'
 
   frontend:
-    needs: [paths]
-    if: needs.paths.outputs.frontend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -66,6 +41,7 @@ jobs:
         working-directory: frontend
 
       - name: Build
+        if: github.event_name == 'push'
         run: npm run build
         working-directory: frontend
 
@@ -76,9 +52,8 @@ jobs:
           name: frontend-dist
           path: frontend/dist
 
+
   backend:
-    needs: [paths]
-    if: needs.paths.outputs.backend == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -88,17 +63,6 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Cache NuGet
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('Directory.Packages.props', 'Directory.Build.props', '**/*.csproj') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-
-      - name: Clean
-        run: dotnet clean Education.sln -c Release
-
       - name: Restore
         run: dotnet restore Education.sln
 
@@ -106,7 +70,7 @@ jobs:
         run: dotnet build Education.sln -c Release --no-restore -warnaserror
 
       - name: Test
-        run: dotnet test Education.sln -c Release --no-build --verbosity normal
+        run: dotnet test Education.sln -c Release --no-build
 
       - name: Publish
         if: github.event_name == 'push'
@@ -124,9 +88,8 @@ jobs:
           name: web-publish
           path: publish
 
+
   mobile:
-    needs: [paths]
-    if: needs.paths.outputs.mobile == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -154,13 +117,13 @@ jobs:
         run: npm run test
         working-directory: mobile
 
+
   deploy-netlify:
     needs: [frontend]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - name: Download frontend artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: frontend-dist
           path: dist
@@ -174,13 +137,13 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
+
   deploy-monsterasp:
     needs: [backend]
     if: github.event_name == 'push'
     runs-on: windows-latest
     steps:
-      - name: Download publish artifact
-        uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
         with:
           name: web-publish
           path: publish
