@@ -1,10 +1,9 @@
-﻿{
+{
   "title": "Marketplace",
-  "subtitle": "Mua tai nguyen tra phi hoac nhan tai nguyen mien phi.",
-  "catalog": "Danh muc",
+  "subtitle": "Mua tài nguyên trả phí hoặc nhận tài nguyên miễn phí.",
+  "catalog": "Danh mục",
   "buy": "Mua",
-  "claim": "Nhan",
-  "free": "Mien phi",
-  "empty": "Chua co san pham nao."
+  "claim": "Nhận",
+  "free": "Miễn phí",
+  "empty": "Chưa có sản phẩm nào."
 }
-

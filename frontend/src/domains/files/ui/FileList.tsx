@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle,
   Input,
+  Skeleton,
 } from '@/shared/ui';
 
 type Props = {
@@ -51,7 +52,23 @@ export function FileList({ canEdit }: Props) {
           </Button>
         </div>
 
-        {loading && <p className="text-sm text-muted-foreground">{translate('loading')}</p>}
+        {loading &&
+          Array.from({ length: 3 }).map((_, index) => (
+            <div key={`file-skeleton-${index}`} className="rounded-lg border bg-muted/20 p-3">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-2">
+                  <Skeleton className="h-5 w-56" />
+                  <Skeleton className="h-4 w-72" />
+                  <Skeleton className="h-4 w-52" />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                  <Skeleton className="h-8 w-20 rounded-md" />
+                </div>
+              </div>
+            </div>
+          ))}
         {error && <p className="text-sm text-destructive">{error}</p>}
         {!loading && !items.length && <p className="text-sm text-muted-foreground">{translate('empty')}</p>}
 

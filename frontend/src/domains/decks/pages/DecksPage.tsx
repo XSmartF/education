@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
@@ -19,6 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Skeleton,
   Textarea,
 } from '@/shared/ui';
 import type { CreateDeckRequest } from '../model/types';
@@ -102,7 +103,10 @@ export default function DecksPage() {
             <CardTitle>{translate('decks:myDecks')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {mine.isLoading && <p className="text-sm text-muted-foreground">{translate('common:loading')}</p>}
+            {mine.isLoading &&
+              Array.from({ length: 3 }).map((_, index) => (
+                <DeckListItemSkeleton key={`mine-deck-skeleton-${index}`} />
+              ))}
             {mine.data?.map((deck) => (
               <article key={deck.id} className="rounded-lg border bg-muted/20 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-2">
@@ -140,7 +144,10 @@ export default function DecksPage() {
           <CardTitle>{translate('decks:publishedDecks')}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          {published.isLoading && <p className="text-sm text-muted-foreground">{translate('common:loading')}</p>}
+          {published.isLoading &&
+            Array.from({ length: 3 }).map((_, index) => (
+              <DeckListItemSkeleton key={`published-deck-skeleton-${index}`} />
+            ))}
           {published.data?.map((deck) => (
             <article key={deck.id} className="rounded-lg border bg-muted/20 p-4">
               <div className="flex flex-wrap items-start justify-between gap-2">
@@ -175,6 +182,24 @@ export default function DecksPage() {
         </CardContent>
       </Card>
     </section>
+  );
+}
+
+function DeckListItemSkeleton() {
+  return (
+    <article className="rounded-lg border bg-muted/20 p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-[16rem] flex-1 space-y-2">
+          <Skeleton className="h-5 w-44" />
+          <Skeleton className="h-4 w-full max-w-xl" />
+          <Skeleton className="h-3 w-64" />
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Skeleton className="h-6 w-20 rounded-full" />
+          <Skeleton className="h-8 w-20 rounded-md" />
+        </div>
+      </div>
+    </article>
   );
 }
 

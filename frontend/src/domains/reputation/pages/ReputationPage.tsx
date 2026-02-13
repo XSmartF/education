@@ -1,4 +1,4 @@
-﻿import { useTranslation } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 import { useReputation } from '../hooks/use-reputation';
 import { formatDateTime } from '@/shared/utils/format';
 import {
@@ -8,6 +8,7 @@ import {
   CardTitle,
   PageIntro,
   Progress,
+  Skeleton,
 } from '@/shared/ui';
 
 export default function ReputationPage() {
@@ -20,7 +21,27 @@ export default function ReputationPage() {
     <section className="space-y-6">
       <PageIntro title={translate('reputation:title')} description={translate('reputation:subtitle')} />
 
-      {profile.isLoading && <p className="text-sm text-muted-foreground">{translate('common:loading')}</p>}
+      {profile.isLoading && (
+        <Card className="border-primary/10 bg-card/90">
+          <CardHeader>
+            <CardTitle>
+              <Skeleton className="h-6 w-44" />
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={`score-skeleton-${index}`} className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Skeleton className="h-4 w-40" />
+                  <Skeleton className="h-4 w-10" />
+                </div>
+                <Skeleton className="h-2 w-full" />
+              </div>
+            ))}
+            <Skeleton className="h-4 w-56" />
+          </CardContent>
+        </Card>
+      )}
 
       {data && (
         <Card className="border-primary/10 bg-card/90">

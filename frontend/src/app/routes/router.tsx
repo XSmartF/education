@@ -20,6 +20,7 @@ import WalletPage from '@/domains/wallet/pages/WalletPage';
 import ReputationPage from '@/domains/reputation/pages/ReputationPage';
 import RequireAuth from './RequireAuth';
 import NotFoundPage from '../pages/NotFoundPage';
+import { STAFF_ACCESS_ROLES } from '@/app/config/navigation';
 
 const rootRoute = createRootRoute({
   component: RootLayout,
@@ -63,17 +64,27 @@ const registerRoute = createSimpleRoute('register', RegisterPage);
 const forgotPasswordRoute = createSimpleRoute('forgot-password', ForgotPasswordPage);
 const resetPasswordRoute = createSimpleRoute('reset-password', ResetPasswordPage);
 
-const todosRoute = createDashboardRoute('todos', () => <RequireAuth Component={TodosPage} />);
-const todoDetailRoute = createDashboardRoute('todos/$todoId', () => <RequireAuth Component={TodoDetailPage} />);
-const filesRoute = createDashboardRoute('files', () => <RequireAuth Component={FilesPage} />);
-const fileDetailRoute = createDashboardRoute('files/$fileId', () => <RequireAuth Component={FileDetailPage} />);
-const coursesRoute = createDashboardRoute('courses', () => <RequireAuth Component={CoursesPage} />);
-const courseDetailRoute = createDashboardRoute('courses/$courseId', () => <RequireAuth Component={CourseDetailPage} />);
-const decksRoute = createDashboardRoute('decks', () => <RequireAuth Component={DecksPage} />);
-const deckDetailRoute = createDashboardRoute('decks/$deckId', () => <RequireAuth Component={DeckDetailPage} />);
-const marketplaceRoute = createDashboardRoute('marketplace', () => <RequireAuth Component={MarketplacePage} />);
+const coursesRoute = createDashboardRoute('courses', CoursesPage);
+const courseDetailRoute = createDashboardRoute('courses/$courseId', CourseDetailPage);
+const decksRoute = createDashboardRoute('decks', DecksPage);
+const deckDetailRoute = createDashboardRoute('decks/$deckId', DeckDetailPage);
+const marketplaceRoute = createDashboardRoute('marketplace', MarketplacePage);
+
 const walletRoute = createDashboardRoute('wallet', () => <RequireAuth Component={WalletPage} />);
 const reputationRoute = createDashboardRoute('reputation', () => <RequireAuth Component={ReputationPage} />);
+
+const todosRoute = createDashboardRoute('todos', () => (
+  <RequireAuth Component={TodosPage} allowedRoles={STAFF_ACCESS_ROLES} />
+));
+const todoDetailRoute = createDashboardRoute('todos/$todoId', () => (
+  <RequireAuth Component={TodoDetailPage} allowedRoles={STAFF_ACCESS_ROLES} />
+));
+const filesRoute = createDashboardRoute('files', () => (
+  <RequireAuth Component={FilesPage} allowedRoles={STAFF_ACCESS_ROLES} />
+));
+const fileDetailRoute = createDashboardRoute('files/$fileId', () => (
+  <RequireAuth Component={FileDetailPage} allowedRoles={STAFF_ACCESS_ROLES} />
+));
 
 const routeTree = rootRoute.addChildren([
   dashboardLayoutRoute.addChildren([

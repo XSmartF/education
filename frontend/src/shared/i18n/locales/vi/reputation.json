@@ -1,11 +1,10 @@
-﻿{
-  "title": "Diem uy tin",
-  "subtitle": "Theo doi diem hoc tap va dong gop cua ban.",
-  "myScore": "Diem cua toi",
-  "learningScore": "Diem hoc tap",
-  "contributionScore": "Diem dong gop",
-  "teachingScore": "Diem giang day",
-  "trustScore": "Diem tin cay",
-  "updatedAt": "Cap nhat"
+{
+  "title": "Điểm uy tín",
+  "subtitle": "Theo dõi điểm học tập và đóng góp của bạn.",
+  "myScore": "Điểm của tôi",
+  "learningScore": "Điểm học tập",
+  "contributionScore": "Điểm đóng góp",
+  "teachingScore": "Điểm giảng dạy",
+  "trustScore": "Điểm tin cậy",
+  "updatedAt": "Cập nhật"
 }
-

@@ -1,14 +1,13 @@
-﻿{
+{
   "title": "Education",
   "tagline": "Learning Economy Platform",
-  "heroTitle": "Bien viec hoc thanh tai san tang truong",
-  "heroDescription": "Tao khoa hoc, xuat ban deck va van hanh nen kinh te noi bo bang vi.",
-  "featureCourses": "He thong khoa hoc theo cau truc module va bai hoc.",
-  "featureMarketplace": "Marketplace cho khoa hoc/deck co tinh commission nen tang.",
-  "featureWallet": "Vi tich hop cho nap tien, mua hang va yeu cau rut tien.",
-  "featureTasks": "Theo doi todos voi man hinh chi tiet va cap nhat nhanh.",
-  "featureFiles": "Tai len, thay the va tai xuong tep qua API bao mat.",
-  "featureSecurity": "Tu dong refresh token va ho tro CSRF mac dinh.",
-  "guestHint": "Dang nhap de mo khoa day du cac module Learning Economy."
+  "heroTitle": "Biến việc học thành tài sản tăng trưởng",
+  "heroDescription": "Tạo khóa học, xuất bản deck và vận hành nền kinh tế nội bộ bằng ví.",
+  "featureCourses": "Hệ thống khóa học theo cấu trúc module và bài học.",
+  "featureMarketplace": "Marketplace cho khóa học/deck có tính commission nền tảng.",
+  "featureWallet": "Ví tích hợp cho nạp tiền, mua hàng và yêu cầu rút tiền.",
+  "featureTasks": "Theo dõi todos với màn hình chi tiết và cập nhật nhanh.",
+  "featureFiles": "Tải lên, thay thế và tải xuống tệp qua API bảo mật.",
+  "featureSecurity": "Tự động refresh token và hỗ trợ CSRF mặc định.",
+  "guestHint": "Đăng nhập để mở khóa đầy đủ các module Learning Economy."
 }
-

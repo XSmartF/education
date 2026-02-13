@@ -35,22 +35,22 @@ export function AuthDialog({ open, mode, onOpenChange, onModeChange, onAuthSucce
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="overflow-hidden border-primary/20 p-0 sm:max-w-4xl">
+      <DialogContent className="overflow-hidden border-border/90 bg-card p-0 sm:max-w-4xl">
         <DialogHeader className="sr-only">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <div className="grid md:grid-cols-[0.92fr_1.08fr]">
-          <aside className="hidden border-r bg-gradient-to-br from-primary/20 via-primary/10 to-background p-8 md:flex md:flex-col md:justify-between">
+
+        <div className="grid lg:grid-cols-[0.9fr_1.1fr]">
+          <aside className="edu-auth-side hidden p-7 lg:flex lg:flex-col lg:justify-between">
             <div className="space-y-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
-                {translate('app:title')}
-              </p>
+              <span className="edu-chip w-fit">{translate('app:title')}</span>
               <h3 className="text-3xl font-semibold leading-tight">{title}</h3>
               <p className="text-sm text-muted-foreground">{description}</p>
             </div>
-            <ul className="space-y-2">
+
+            <ul className="space-y-2.5">
               {highlights.map((item) => (
-                <li key={item} className="flex items-start gap-2 text-sm text-foreground/90">
+                <li key={item} className="edu-auth-step flex items-start gap-2.5 text-sm">
                   <CheckCircle2 className="mt-0.5 size-4 text-primary" />
                   <span>{item}</span>
                 </li>
@@ -58,10 +58,10 @@ export function AuthDialog({ open, mode, onOpenChange, onModeChange, onAuthSucce
             </ul>
           </aside>
 
-          <div className="p-6 sm:p-8">
+          <div className="p-4 sm:p-6 lg:p-7">
             <AuthPanel onAuth={onAuthSuccess} mode={mode} onModeChange={onModeChange} />
             {mode === 'login' && (
-              <Button variant="link" className="mt-3 w-full" onClick={toForgotPassword}>
+              <Button variant="link" className="mt-3 w-full text-muted-foreground" onClick={toForgotPassword}>
                 {translate('auth:forgotPasswordLink')}
               </Button>
             )}

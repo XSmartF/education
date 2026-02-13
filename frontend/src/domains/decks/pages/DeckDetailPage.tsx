@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
@@ -19,6 +19,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
+  Skeleton,
   Textarea,
 } from '@/shared/ui';
 import type { UpdateDeckRequest } from '../model/types';
@@ -78,7 +79,30 @@ export default function DeckDetailPage() {
   };
 
   if (detail.isLoading) {
-    return <p className="text-sm text-muted-foreground">{translate('common:loading')}</p>;
+    return (
+      <section className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-64" />
+          <Skeleton className="h-4 w-full max-w-xl" />
+        </div>
+        <Card className="border-primary/10 bg-card/90">
+          <CardContent className="space-y-4 p-6">
+            <Skeleton className="h-6 w-48" />
+            <Skeleton className="h-4 w-full max-w-2xl" />
+            <Skeleton className="h-4 w-72" />
+            <Skeleton className="h-9 w-28" />
+          </CardContent>
+        </Card>
+        <Card className="border-primary/10 bg-card/90">
+          <CardContent className="space-y-3 p-6">
+            <Skeleton className="h-5 w-44" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+          </CardContent>
+        </Card>
+      </section>
+    );
   }
 
   if (!deck) {

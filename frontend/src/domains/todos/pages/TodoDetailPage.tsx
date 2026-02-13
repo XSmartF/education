@@ -24,6 +24,7 @@ import {
   FormMessage,
   Input,
   PageIntro,
+  Skeleton,
 } from '@/shared/ui';
 
 export default function TodoDetailPage() {
@@ -81,7 +82,29 @@ export default function TodoDetailPage() {
   // access control handled by router/RequireAuth wrapper
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">{translate('loading')}</p>;
+    return (
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-56" />
+          <Skeleton className="h-4 w-full max-w-lg" />
+        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <Skeleton className="h-6 w-36" />
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-6 w-32" />
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    );
   }
 
   if (error || !data) {

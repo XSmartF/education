@@ -93,9 +93,10 @@ export default function ResetPasswordPage() {
   });
 
   return (
-    <Card className="max-w-md">
+    <Card className="w-full max-w-md overflow-hidden border-border/75">
+      <div className="pointer-events-none h-1.5 bg-primary/65" />
       <CardHeader>
-        <CardTitle>{translate('auth:resetPasswordTitle')}</CardTitle>
+        <CardTitle className="text-2xl">{translate('auth:resetPasswordTitle')}</CardTitle>
       </CardHeader>
       <CardContent className="grid gap-4">
         <Form {...form}>
@@ -162,7 +163,7 @@ export default function ResetPasswordPage() {
         </Form>
       </CardContent>
       <CardFooter className="flex flex-col gap-2">
-        <Button variant="link" className="w-full" onClick={() => navigate({ to: '/login' })}>
+        <Button variant="ghost" className="w-full" onClick={() => navigate({ to: '/login' })}>
           {translate('auth:backToLogin')}
         </Button>
       </CardFooter>

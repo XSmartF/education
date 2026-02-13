@@ -1,20 +1,19 @@
-﻿{
-  "title": "Vi",
-  "subtitle": "Nap tien, mua tai nguyen va rut tien trong he thong.",
-  "balance": "So du",
-  "topUp": "Nap tien",
-  "requestWithdrawal": "Yeu cau rut tien",
-  "pendingWithdrawals": "Yeu cau rut dang cho",
-  "transactions": "Giao dich",
-  "amount": "So tien",
-  "note": "Ghi chu",
-  "type": "Loai",
-  "description": "Mo ta",
-  "time": "Thoi gian",
-  "userId": "Ma nguoi dung",
-  "status": "Trang thai",
-  "approve": "Duyet",
-  "reject": "Tu choi",
-  "noPending": "Khong co yeu cau cho duyet."
+{
+  "title": "Ví",
+  "subtitle": "Nạp tiền, mua tài nguyên và rút tiền trong hệ thống.",
+  "balance": "Số dư",
+  "topUp": "Nạp tiền",
+  "requestWithdrawal": "Yêu cầu rút tiền",
+  "pendingWithdrawals": "Yêu cầu rút đang chờ",
+  "transactions": "Giao dịch",
+  "amount": "Số tiền",
+  "note": "Ghi chú",
+  "type": "Loại",
+  "description": "Mô tả",
+  "time": "Thời gian",
+  "userId": "Mã người dùng",
+  "status": "Trạng thái",
+  "approve": "Duyệt",
+  "reject": "Từ chối",
+  "noPending": "Không có yêu cầu chờ duyệt."
 }
-

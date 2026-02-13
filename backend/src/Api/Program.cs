@@ -12,6 +12,9 @@ builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+var migrateOnStartup = builder.Configuration.GetValue("Startup:MigrateOnStartup", true);
+var seedDataOnStartup = builder.Configuration.GetValue("Startup:SeedDataOnStartup", true);
+
 var app = builder.Build();
 
 try
@@ -19,8 +22,25 @@ try
     await using var scope = app.Services.CreateAsyncScope();
     var services = scope.ServiceProvider;
     var dbContext = services.GetRequiredService<AppDbContext>();
-    await dbContext.Database.MigrateAsync();
-    await RoleSeeder.EnsureRolesAsync(services);
+    var logger = services.GetRequiredService<ILogger<Program>>();
+
+    if (migrateOnStartup)
+    {
+        await dbContext.Database.MigrateAsync();
+    }
+    else
+    {
+        logger.LogInformation("Database migration on startup is disabled.");
+    }
+
+    if (seedDataOnStartup)
+    {
+        await RoleSeeder.EnsureRolesAsync(services);
+    }
+    else
+    {
+        logger.LogInformation("Seed data on startup is disabled.");
+    }
 }
 catch (Exception ex)
 {

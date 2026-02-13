@@ -37,6 +37,23 @@
   "noModules": "No module yet.",
   "noLessons": "No lesson yet.",
   "notFound": "Course not found.",
-  "backToCourses": "Back to courses"
+  "backToCourses": "Back to courses",
+  "searchPlaceholder": "Search courses...",
+  "filterCategory": "Category",
+  "filterLevel": "Level",
+  "filterPrice": "Price",
+  "filter": "Filter",
+  "filterTitle": "Filter courses",
+  "filterDescription": "Refine the catalog by category, level, and price.",
+  "filterAll": "All",
+  "filterFree": "Free",
+  "filterPaid": "Paid",
+  "applyFilters": "Apply",
+  "resetFilters": "Reset",
+  "results": "results",
+  "showing": "Showing",
+  "previous": "Previous",
+  "next": "Next",
+  "noFilteredCatalog": "No courses match the selected filters."
 }
 

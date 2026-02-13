@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Lock, Mail, Sparkles, UserRound } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -112,8 +112,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
     }
   });
 
-  const submitLabel =
-    activeMode === 'login' ? translate('loginButton') : translate('registerButton');
+  const submitLabel = activeMode === 'login' ? translate('loginButton') : translate('registerButton');
   const passwordAutoComplete = activeMode === 'register' ? 'new-password' : 'current-password';
   const title = activeMode === 'login' ? translate('loginTitle') : translate('registerTitle');
   const description =
@@ -121,22 +120,22 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
   const switchLabel = activeMode === 'login' ? translate('switchToRegister') : translate('switchToLogin');
 
   return (
-    <div className="mx-auto w-full max-w-md rounded-2xl border border-primary/15 bg-card/80 p-5 shadow-sm backdrop-blur-sm sm:p-6">
+    <div className="edu-panel mx-auto w-full max-w-md p-5 sm:p-6">
       <div className="space-y-2">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+        <span className="edu-chip border-primary/15 bg-primary/10 text-primary">
           <Sparkles className="size-3.5" />
           {translate('welcomeLabel')}
         </span>
-        <h2 className="text-2xl font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-2xl font-semibold tracking-tight sm:text-[1.75rem]">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 rounded-xl border bg-muted/40 p-1">
+      <div className="mt-5 grid grid-cols-2 rounded-lg border border-border/90 bg-muted/40 p-1">
         <Button
           type="button"
           variant="ghost"
           className={cn(
-            'h-9 rounded-lg',
+            'h-10 rounded-md',
             activeMode === 'login' && 'bg-background text-foreground shadow-sm hover:bg-background'
           )}
           onClick={() => setMode('login')}
@@ -147,7 +146,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
           type="button"
           variant="ghost"
           className={cn(
-            'h-9 rounded-lg',
+            'h-10 rounded-md',
             activeMode === 'register' && 'bg-background text-foreground shadow-sm hover:bg-background'
           )}
           onClick={() => setMode('register')}
@@ -159,6 +158,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
       <Form {...form}>
         <form className="mt-5 space-y-4" onSubmit={submit}>
           <input type="hidden" {...form.register('mode')} />
+
           <FormField
             control={form.control}
             name="email"
@@ -168,18 +168,14 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
                 <FormControl>
                   <div className="relative">
                     <Mail className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      type="email"
-                      autoComplete="email"
-                      className="h-11 rounded-xl border-input/70 bg-background/90 pl-10"
-                      {...field}
-                    />
+                    <Input type="email" autoComplete="email" className="pl-10" {...field} />
                   </div>
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
           />
+
           {activeMode === 'register' && (
             <FormField
               control={form.control}
@@ -190,11 +186,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
                   <FormControl>
                     <div className="relative">
                       <UserRound className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                      <Input
-                        autoComplete="name"
-                        className="h-11 rounded-xl border-input/70 bg-background/90 pl-10"
-                        {...field}
-                      />
+                      <Input autoComplete="name" className="pl-10" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -202,6 +194,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
               )}
             />
           )}
+
           {activeMode === 'register' && (
             <FormField
               control={form.control}
@@ -211,7 +204,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
                   <FormLabel>{translate('roleLabel')}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="h-11 rounded-xl border-input/70 bg-background/90">
+                      <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -226,6 +219,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
               )}
             />
           )}
+
           <FormField
             control={form.control}
             name="password"
@@ -238,7 +232,7 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
                     <Input
                       type="password"
                       autoComplete={passwordAutoComplete}
-                      className="h-11 rounded-xl border-input/70 bg-background/90 pl-10"
+                      className="pl-10"
                       {...field}
                     />
                   </div>
@@ -247,16 +241,14 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
               </FormItem>
             )}
           />
+
           {form.formState.errors.root?.message && (
-            <p className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
               {form.formState.errors.root.message}
             </p>
           )}
-          <Button
-            type="submit"
-            className="h-11 w-full rounded-xl shadow-sm"
-            disabled={form.formState.isSubmitting}
-          >
+
+          <Button type="submit" className="h-11 w-full rounded-md" disabled={form.formState.isSubmitting}>
             {submitLabel}
           </Button>
           <Button
@@ -272,4 +264,3 @@ export function AuthPanel({ onAuth, mode, onModeChange }: Props) {
     </div>
   );
 }
-

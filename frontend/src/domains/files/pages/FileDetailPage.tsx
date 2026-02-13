@@ -6,7 +6,7 @@ import { fileApi } from '@/domains/files/api/file-api';
 import type { FileItem } from '@/domains/files/model/types';
 import { filesQueryKeys } from '@/domains/files/model/query-keys';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, PageIntro } from '@/shared/ui';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, PageIntro, Skeleton } from '@/shared/ui';
 import { saveBlobFile } from '@/shared/utils/file-download';
 import { formatBytes, formatDateTime } from '@/shared/utils/format';
 
@@ -69,7 +69,30 @@ export default function FileDetailPage() {
   };
 
   if (query.isLoading) {
-    return <p className="text-sm text-muted-foreground">{translate('loading')}</p>;
+    return (
+      <section className="space-y-4">
+        <div className="space-y-2">
+          <Skeleton className="h-9 w-56" />
+          <Skeleton className="h-4 w-full max-w-lg" />
+        </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <Skeleton className="h-6 w-44" />
+            <Skeleton className="h-6 w-24 rounded-full" />
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Skeleton className="h-4 w-44" />
+            <Skeleton className="h-4 w-56" />
+            <Skeleton className="h-10 w-full" />
+            <div className="flex flex-wrap gap-2">
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </CardContent>
+        </Card>
+      </section>
+    );
   }
 
   if (query.error || !query.data) {

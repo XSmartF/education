@@ -1,13 +1,12 @@
-﻿{
-  "todos": "Todos",
-  "files": "Tep",
-  "courses": "Khoa hoc",
+{
+  "todos": "Việc cần làm",
+  "files": "Tệp",
+  "courses": "Khóa học",
   "decks": "Deck",
   "marketplace": "Marketplace",
-  "wallet": "Vi",
-  "reputation": "Uy tin",
-  "login": "Dang nhap",
-  "register": "Dang ky",
-  "logout": "Dang xuat"
+  "wallet": "Ví",
+  "reputation": "Uy tín",
+  "login": "Đăng nhập",
+  "register": "Đăng ký",
+  "logout": "Đăng xuất"
 }
-

@@ -1,4 +1,4 @@
-﻿import { useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
 import { useWallet } from '../hooks/use-wallet';
@@ -18,6 +18,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  Skeleton,
   Textarea,
 } from '@/shared/ui';
 
@@ -53,7 +54,11 @@ export default function WalletPage() {
           <CardTitle>{translate('wallet:balance')}</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-semibold">{formatMoney(overview.data?.balance ?? 0)}</p>
+          {overview.isLoading ? (
+            <Skeleton className="h-10 w-48" />
+          ) : (
+            <p className="text-3xl font-semibold">{formatMoney(overview.data?.balance ?? 0)}</p>
+          )}
         </CardContent>
       </Card>
 
@@ -114,27 +119,39 @@ export default function WalletPage() {
           <CardTitle>{translate('wallet:transactions')}</CardTitle>
         </CardHeader>
         <CardContent>
-          {overview.isLoading && <p className="text-sm text-muted-foreground">{translate('common:loading')}</p>}
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{translate('wallet:type')}</TableHead>
-                <TableHead>{translate('wallet:amount')}</TableHead>
-                <TableHead>{translate('wallet:description')}</TableHead>
-                <TableHead>{translate('wallet:time')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {overview.data?.transactions.map((tx) => (
-                <TableRow key={tx.id}>
-                  <TableCell>{tx.type}</TableCell>
-                  <TableCell>{formatMoney(tx.amount)}</TableCell>
-                  <TableCell>{tx.description}</TableCell>
-                  <TableCell>{formatDateTime(tx.createdAt)}</TableCell>
-                </TableRow>
+          {overview.isLoading ? (
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, index) => (
+                <div key={`wallet-tx-skeleton-${index}`} className="grid gap-3 sm:grid-cols-4">
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
               ))}
-            </TableBody>
-          </Table>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{translate('wallet:type')}</TableHead>
+                  <TableHead>{translate('wallet:amount')}</TableHead>
+                  <TableHead>{translate('wallet:description')}</TableHead>
+                  <TableHead>{translate('wallet:time')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {overview.data?.transactions.map((tx) => (
+                  <TableRow key={tx.id}>
+                    <TableCell>{tx.type}</TableCell>
+                    <TableCell>{formatMoney(tx.amount)}</TableCell>
+                    <TableCell>{tx.description}</TableCell>
+                    <TableCell>{formatDateTime(tx.createdAt)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
 
@@ -144,9 +161,23 @@ export default function WalletPage() {
             <CardTitle>{translate('wallet:pendingWithdrawals')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            {pendingWithdrawals.isLoading && (
-              <p className="text-sm text-muted-foreground">{translate('common:loading')}</p>
-            )}
+            {pendingWithdrawals.isLoading &&
+              Array.from({ length: 2 }).map((_, index) => (
+                <article key={`withdrawal-skeleton-${index}`} className="rounded-lg border bg-muted/20 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="min-w-[16rem] flex-1 space-y-2">
+                      <Skeleton className="h-4 w-48" />
+                      <Skeleton className="h-4 w-40" />
+                      <Skeleton className="h-4 w-36" />
+                      <Skeleton className="h-4 w-52" />
+                    </div>
+                    <div className="flex gap-2">
+                      <Skeleton className="h-8 w-20 rounded-md" />
+                      <Skeleton className="h-8 w-20 rounded-md" />
+                    </div>
+                  </div>
+                </article>
+              ))}
             {pendingWithdrawals.data?.map((item) => (
               <article key={item.id} className="rounded-lg border bg-muted/20 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
