@@ -12,6 +12,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Label,
   Select,
@@ -48,6 +55,7 @@ export default function CoursesPage() {
   const [level, setLevel] = useState('Beginner');
   const [price, setPrice] = useState('0');
   const [isPublic, setIsPublic] = useState(true);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -154,59 +162,88 @@ export default function CoursesPage() {
     setLevel('Beginner');
     setPrice('0');
     setIsPublic(true);
+    setIsCreateDialogOpen(false);
   };
 
   return (
     <section className="space-y-6">
       {auth.isStaff && (
         <Card className="border-border/90">
-          <CardHeader>
-            <CardTitle>Creator Studio</CardTitle>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
+            <div className="space-y-1">
+              <CardTitle>Creator Studio</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                {translate('courses:createCourse')}
+              </p>
+            </div>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>{translate('courses:createCourse')}</Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>{translate('courses:createCourse')}</DialogTitle>
+                  <DialogDescription>
+                    Creator Studio
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="course-title">{translate('courses:courseTitle')}</Label>
+                    <Input id="course-title" value={title} onChange={(event) => setTitle(event.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="course-description">{translate('courses:courseDescription')}</Label>
+                    <Textarea
+                      id="course-description"
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="course-category">{translate('courses:courseCategory')}</Label>
+                      <Input id="course-category" value={category} onChange={(event) => setCategory(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="course-level">{translate('courses:courseLevel')}</Label>
+                      <Input id="course-level" value={level} onChange={(event) => setLevel(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="course-price">{translate('courses:coursePrice')}</Label>
+                      <Input id="course-price" value={price} onChange={(event) => setPrice(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="course-public">{translate('courses:isPublic')}</Label>
+                      <button
+                        id="course-public"
+                        type="button"
+                        className={cn(
+                          'h-11 rounded-lg border border-border/90 px-3 text-left text-sm font-medium',
+                          isPublic ? 'bg-secondary text-secondary-foreground' : 'bg-muted/50 text-muted-foreground'
+                        )}
+                        onClick={() => setIsPublic((prev) => !prev)}
+                      >
+                        {isPublic ? 'Public' : 'Private'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button
+                    onClick={() => void submit()}
+                    disabled={!title.trim() || !description.trim() || catalog.isFetching}
+                  >
+                    {translate('courses:createCourse')}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="course-title">{translate('courses:courseTitle')}</Label>
-              <Input id="course-title" value={title} onChange={(event) => setTitle(event.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="course-description">{translate('courses:courseDescription')}</Label>
-              <Textarea
-                id="course-description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-4">
-              <div className="grid gap-2">
-                <Label htmlFor="course-category">{translate('courses:courseCategory')}</Label>
-                <Input id="course-category" value={category} onChange={(event) => setCategory(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="course-level">{translate('courses:courseLevel')}</Label>
-                <Input id="course-level" value={level} onChange={(event) => setLevel(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="course-price">{translate('courses:coursePrice')}</Label>
-                <Input id="course-price" value={price} onChange={(event) => setPrice(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="course-public">{translate('courses:isPublic')}</Label>
-                <button
-                  id="course-public"
-                  type="button"
-                  className={cn(
-                    'h-11 rounded-lg border border-border/90 px-3 text-left text-sm font-medium',
-                    isPublic ? 'bg-secondary text-secondary-foreground' : 'bg-muted/50 text-muted-foreground'
-                  )}
-                  onClick={() => setIsPublic((prev) => !prev)}
-                >
-                  {isPublic ? 'Public' : 'Private'}
-                </button>
-              </div>
-            </div>
-            <Button onClick={() => void submit()} disabled={!title.trim() || !description.trim() || catalog.isFetching}>
-              {translate('courses:createCourse')}
-            </Button>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              {translate('courses:courseTitle')} / {translate('courses:courseDescription')} / {translate('courses:courseCategory')}
+            </p>
           </CardContent>
         </Card>
       )}
@@ -232,6 +269,8 @@ export default function CoursesPage() {
                     enrollmentsLabel={translate('courses:enrollments')}
                     publishedLabel={translate('courses:published')}
                     draftLabel={translate('courses:draft')}
+                    visibilityPublicLabel={translate('courses:visibilityPublic')}
+                    visibilityPrivateLabel={translate('courses:visibilityPrivate')}
                     canPublish
                     onPublish={publishCourse}
                   />
@@ -357,6 +396,8 @@ export default function CoursesPage() {
                     enrollmentsLabel={translate('courses:enrollments')}
                     publishedLabel={translate('courses:published')}
                     draftLabel={translate('courses:draft')}
+                    visibilityPublicLabel={translate('courses:visibilityPublic')}
+                    visibilityPrivateLabel={translate('courses:visibilityPrivate')}
                     canPublish={auth.isStaff}
                     canEnroll={auth.isAuthenticated}
                     onPublish={publishCourse}
@@ -447,6 +488,8 @@ type CourseCardProps = {
   enrollmentsLabel: string;
   publishedLabel: string;
   draftLabel: string;
+  visibilityPublicLabel: string;
+  visibilityPrivateLabel: string;
   canEnroll?: boolean;
   onPublish: (courseId: string) => Promise<void>;
   onEnroll?: (courseId: string) => Promise<void>;
@@ -463,6 +506,8 @@ function CourseCard({
   enrollmentsLabel,
   publishedLabel,
   draftLabel,
+  visibilityPublicLabel,
+  visibilityPrivateLabel,
   canEnroll = false,
   onPublish,
   onEnroll,
@@ -476,7 +521,16 @@ function CourseCard({
             {course.category} | {course.level}
           </p>
         </div>
-        {course.isPublished ? <Badge variant="default">{publishedLabel}</Badge> : <Badge variant="secondary">{draftLabel}</Badge>}
+        <div className="flex flex-wrap items-center justify-end gap-1">
+          {course.isPublished ? (
+            <Badge variant="default">{publishedLabel}</Badge>
+          ) : (
+            <Badge variant="secondary">{draftLabel}</Badge>
+          )}
+          <Badge variant={course.isPublic ? 'outline' : 'secondary'}>
+            {course.isPublic ? visibilityPublicLabel : visibilityPrivateLabel}
+          </Badge>
+        </div>
       </div>
 
       <p className="text-sm text-muted-foreground">{course.description}</p>

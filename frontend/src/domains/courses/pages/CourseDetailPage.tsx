@@ -11,6 +11,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Label,
   PageIntro,
@@ -36,6 +43,9 @@ export default function CourseDetailPage() {
   const [level, setLevel] = useState('');
   const [price, setPrice] = useState('0');
   const [isPublic, setIsPublic] = useState(true);
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isModuleDialogOpen, setIsModuleDialogOpen] = useState(false);
+  const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false);
 
   const [moduleTitle, setModuleTitle] = useState('');
   const [moduleSortOrder, setModuleSortOrder] = useState('0');
@@ -92,6 +102,7 @@ export default function CourseDetailPage() {
       price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
       isPublic,
     });
+    setIsUpdateDialogOpen(false);
   };
 
   const submitModule = async () => {
@@ -102,6 +113,7 @@ export default function CourseDetailPage() {
     });
     setModuleTitle('');
     setModuleSortOrder('0');
+    setIsModuleDialogOpen(false);
   };
 
   const submitLesson = async () => {
@@ -124,6 +136,7 @@ export default function CourseDetailPage() {
     setLessonContentUrl('');
     setLessonDuration('0');
     setLessonSortOrder('0');
+    setIsLessonDialogOpen(false);
   };
 
   if (detail.isLoading) {
@@ -176,11 +189,16 @@ export default function CourseDetailPage() {
       <Card className="border-primary/10 bg-card/90">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>{translate('courses:overview')}</CardTitle>
-          {course.isPublished ? (
-            <Badge variant="default">{translate('courses:published')}</Badge>
-          ) : (
-            <Badge variant="secondary">{translate('courses:draft')}</Badge>
-          )}
+          <div className="flex flex-wrap items-center gap-1">
+            {course.isPublished ? (
+              <Badge variant="default">{translate('courses:published')}</Badge>
+            ) : (
+              <Badge variant="secondary">{translate('courses:draft')}</Badge>
+            )}
+            <Badge variant={course.isPublic ? 'outline' : 'secondary'}>
+              {course.isPublic ? translate('courses:visibilityPublic') : translate('courses:visibilityPrivate')}
+            </Badge>
+          </div>
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
@@ -203,123 +221,152 @@ export default function CourseDetailPage() {
       {canManage && (
         <Card className="border-primary/10 bg-card/90">
           <CardHeader>
-            <CardTitle>{translate('courses:updateCourse')}</CardTitle>
+            <CardTitle>{translate('courses:manage')}</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="detail-title">{translate('courses:courseTitle')}</Label>
-              <Input id="detail-title" value={title} onChange={(event) => setTitle(event.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="detail-description">{translate('courses:courseDescription')}</Label>
-              <Textarea
-                id="detail-description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="detail-category">{translate('courses:courseCategory')}</Label>
-                <Input id="detail-category" value={category} onChange={(event) => setCategory(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="detail-level">{translate('courses:courseLevel')}</Label>
-                <Input id="detail-level" value={level} onChange={(event) => setLevel(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="detail-price">{translate('courses:coursePrice')}</Label>
-                <Input id="detail-price" value={price} onChange={(event) => setPrice(event.target.value)} />
-              </div>
-            </div>
-            <div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
-              <Label htmlFor="detail-public" className="cursor-pointer">
-                {translate('courses:isPublic')}
-              </Label>
-              <Switch id="detail-public" checked={isPublic} onCheckedChange={setIsPublic} />
-            </div>
-            <Button onClick={() => void submitUpdate()}>{translate('courses:saveChanges')}</Button>
-          </CardContent>
-        </Card>
-      )}
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">{translate('courses:updateCourse')}</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{translate('courses:updateCourse')}</DialogTitle>
+                    <DialogDescription>{course.title}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="detail-title">{translate('courses:courseTitle')}</Label>
+                      <Input id="detail-title" value={title} onChange={(event) => setTitle(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="detail-description">{translate('courses:courseDescription')}</Label>
+                      <Textarea
+                        id="detail-description"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <div className="grid gap-2">
+                        <Label htmlFor="detail-category">{translate('courses:courseCategory')}</Label>
+                        <Input id="detail-category" value={category} onChange={(event) => setCategory(event.target.value)} />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="detail-level">{translate('courses:courseLevel')}</Label>
+                        <Input id="detail-level" value={level} onChange={(event) => setLevel(event.target.value)} />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="detail-price">{translate('courses:coursePrice')}</Label>
+                        <Input id="detail-price" value={price} onChange={(event) => setPrice(event.target.value)} />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg border bg-muted/20 p-3">
+                      <Label htmlFor="detail-public" className="cursor-pointer">
+                        {translate('courses:isPublic')}
+                      </Label>
+                      <Switch id="detail-public" checked={isPublic} onCheckedChange={setIsPublic} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => void submitUpdate()}>{translate('courses:saveChanges')}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-      {canManage && (
-        <Card className="border-primary/10 bg-card/90">
-          <CardHeader>
-            <CardTitle>{translate('courses:addModule')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 sm:grid-cols-[1fr_auto_auto] sm:items-end">
-            <div className="grid gap-2">
-              <Label htmlFor="module-title">{translate('courses:moduleTitle')}</Label>
-              <Input id="module-title" value={moduleTitle} onChange={(event) => setModuleTitle(event.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="module-order">{translate('courses:sortOrder')}</Label>
-              <Input id="module-order" value={moduleSortOrder} onChange={(event) => setModuleSortOrder(event.target.value)} />
-            </div>
-            <Button onClick={() => void submitModule()} disabled={!moduleTitle.trim()}>
-              {translate('courses:addModule')}
-            </Button>
-          </CardContent>
-        </Card>
-      )}
+              <Dialog open={isModuleDialogOpen} onOpenChange={setIsModuleDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">{translate('courses:addModule')}</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{translate('courses:addModule')}</DialogTitle>
+                    <DialogDescription>{course.title}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="module-title">{translate('courses:moduleTitle')}</Label>
+                      <Input id="module-title" value={moduleTitle} onChange={(event) => setModuleTitle(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="module-order">{translate('courses:sortOrder')}</Label>
+                      <Input id="module-order" value={moduleSortOrder} onChange={(event) => setModuleSortOrder(event.target.value)} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => void submitModule()} disabled={!moduleTitle.trim()}>
+                      {translate('courses:addModule')}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-      {canManage && (
-        <Card className="border-primary/10 bg-card/90">
-          <CardHeader>
-            <CardTitle>{translate('courses:addLesson')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label>{translate('courses:module')}</Label>
-              <Select value={lessonModuleId} onValueChange={setLessonModuleId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={translate('courses:selectModule')} />
-                </SelectTrigger>
-                <SelectContent>
-                  {moduleOptions.map((module) => (
-                    <SelectItem key={module.id} value={module.id}>
-                      {module.title}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Dialog open={isLessonDialogOpen} onOpenChange={setIsLessonDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">{translate('courses:addLesson')}</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>{translate('courses:addLesson')}</DialogTitle>
+                    <DialogDescription>{course.title}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label>{translate('courses:module')}</Label>
+                      <Select value={lessonModuleId} onValueChange={setLessonModuleId}>
+                        <SelectTrigger>
+                          <SelectValue placeholder={translate('courses:selectModule')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {moduleOptions.map((module) => (
+                            <SelectItem key={module.id} value={module.id}>
+                              {module.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="lesson-title">{translate('courses:lessonTitle')}</Label>
+                        <Input id="lesson-title" value={lessonTitle} onChange={(event) => setLessonTitle(event.target.value)} />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="lesson-content-type">{translate('courses:contentType')}</Label>
+                        <Input
+                          id="lesson-content-type"
+                          value={lessonContentType}
+                          onChange={(event) => setLessonContentType(event.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="lesson-content-url">{translate('courses:contentUrl')}</Label>
+                      <Input
+                        id="lesson-content-url"
+                        value={lessonContentUrl}
+                        onChange={(event) => setLessonContentUrl(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="lesson-duration">{translate('courses:durationMinutes')}</Label>
+                        <Input id="lesson-duration" value={lessonDuration} onChange={(event) => setLessonDuration(event.target.value)} />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="lesson-order">{translate('courses:sortOrder')}</Label>
+                        <Input id="lesson-order" value={lessonSortOrder} onChange={(event) => setLessonSortOrder(event.target.value)} />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => void submitLesson()} disabled={!lessonTitle.trim() || !lessonModuleId}>
+                      {translate('courses:addLesson')}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="lesson-title">{translate('courses:lessonTitle')}</Label>
-                <Input id="lesson-title" value={lessonTitle} onChange={(event) => setLessonTitle(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="lesson-content-type">{translate('courses:contentType')}</Label>
-                <Input
-                  id="lesson-content-type"
-                  value={lessonContentType}
-                  onChange={(event) => setLessonContentType(event.target.value)}
-                />
-              </div>
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="lesson-content-url">{translate('courses:contentUrl')}</Label>
-              <Input
-                id="lesson-content-url"
-                value={lessonContentUrl}
-                onChange={(event) => setLessonContentUrl(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label htmlFor="lesson-duration">{translate('courses:durationMinutes')}</Label>
-                <Input id="lesson-duration" value={lessonDuration} onChange={(event) => setLessonDuration(event.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="lesson-order">{translate('courses:sortOrder')}</Label>
-                <Input id="lesson-order" value={lessonSortOrder} onChange={(event) => setLessonSortOrder(event.target.value)} />
-              </div>
-            </div>
-            <Button onClick={() => void submitLesson()} disabled={!lessonTitle.trim() || !lessonModuleId}>
-              {translate('courses:addLesson')}
-            </Button>
           </CardContent>
         </Card>
       )}

@@ -21,6 +21,8 @@
   "enrollments": "Enrollments",
   "published": "Published",
   "draft": "Draft",
+  "visibilityPublic": "Public",
+  "visibilityPrivate": "Private",
   "noCourses": "No course created yet.",
   "noCatalog": "No public course available.",
   "addModule": "Add module",

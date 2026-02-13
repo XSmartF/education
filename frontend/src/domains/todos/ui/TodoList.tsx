@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,6 +12,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Form,
   FormControl,
   FormField,
@@ -27,6 +34,7 @@ type Props = {
 export function TodoList({ canEdit }: Props) {
   const { t: translate } = useTranslation('todos');
   const { items, loading, error, add, toggle, remove } = useTodos();
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   type TodoFormValues = { title: string };
 
   const todoSchema = z.object({
@@ -46,39 +54,55 @@ export function TodoList({ canEdit }: Props) {
     }
     await add(values.title);
     form.reset({ title: '' });
+    setIsAddDialogOpen(false);
   });
 
   return (
     <Card className="border-primary/10 bg-card/90">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{translate('title')}</CardTitle>
-        {!canEdit && <Badge variant="secondary">{translate('readOnly')}</Badge>}
+        <div className="flex items-center gap-2">
+          {!canEdit && <Badge variant="secondary">{translate('readOnly')}</Badge>}
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" disabled={!canEdit}>
+                {translate('addButton')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{translate('addButton')}</DialogTitle>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={submit} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="title"
+                    render={({ field }) => (
+                      <FormItem className="w-full">
+                        <FormControl>
+                          <Input
+                            placeholder={translate('addPlaceholder')}
+                            disabled={!canEdit}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter>
+                    <Button type="submit" disabled={!canEdit || form.formState.isSubmitting}>
+                      {translate('addButton')}
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Form {...form}>
-          <form onSubmit={submit} className="flex flex-col gap-2 sm:flex-row sm:items-start">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem className="w-full">
-                  <FormControl>
-                    <Input
-                      placeholder={translate('addPlaceholder')}
-                      disabled={!canEdit}
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={!canEdit || form.formState.isSubmitting}>
-              {translate('addButton')}
-            </Button>
-          </form>
-        </Form>
-
         {loading &&
           Array.from({ length: 3 }).map((_, index) => (
             <div key={`todo-skeleton-${index}`} className="rounded-lg border bg-muted/20 p-3">

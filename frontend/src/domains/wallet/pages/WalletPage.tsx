@@ -9,6 +9,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Label,
   PageIntro,
@@ -31,10 +38,13 @@ export default function WalletPage() {
   const [topUpNote, setTopUpNote] = useState('');
   const [withdrawAmount, setWithdrawAmount] = useState('10');
   const [withdrawNote, setWithdrawNote] = useState('');
+  const [isTopUpDialogOpen, setIsTopUpDialogOpen] = useState(false);
+  const [isWithdrawDialogOpen, setIsWithdrawDialogOpen] = useState(false);
 
   const submitTopUp = async () => {
     const amount = Number.parseFloat(topUpAmount);
     await topUp({ amount: Number.isFinite(amount) ? amount : 0, note: topUpNote.trim() || undefined });
+    setIsTopUpDialogOpen(false);
   };
 
   const submitWithdrawal = async () => {
@@ -43,6 +53,7 @@ export default function WalletPage() {
       amount: Number.isFinite(amount) ? amount : 0,
       note: withdrawNote.trim() || undefined,
     });
+    setIsWithdrawDialogOpen(false);
   };
 
   return (
@@ -64,52 +75,84 @@ export default function WalletPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <Card className="border-primary/10 bg-card/90">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
             <CardTitle>{translate('wallet:topUp')}</CardTitle>
+            <Dialog open={isTopUpDialogOpen} onOpenChange={setIsTopUpDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>{translate('wallet:topUp')}</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{translate('wallet:topUp')}</DialogTitle>
+                  <DialogDescription>{translate('wallet:subtitle')}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="wallet-topup-amount">{translate('wallet:amount')}</Label>
+                    <Input
+                      id="wallet-topup-amount"
+                      value={topUpAmount}
+                      onChange={(event) => setTopUpAmount(event.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="wallet-topup-note">{translate('wallet:note')}</Label>
+                    <Textarea
+                      id="wallet-topup-note"
+                      value={topUpNote}
+                      onChange={(event) => setTopUpNote(event.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => void submitTopUp()}>{translate('wallet:topUp')}</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
-          <CardContent className="grid gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="wallet-topup-amount">{translate('wallet:amount')}</Label>
-              <Input
-                id="wallet-topup-amount"
-                value={topUpAmount}
-                onChange={(event) => setTopUpAmount(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="wallet-topup-note">{translate('wallet:note')}</Label>
-              <Textarea
-                id="wallet-topup-note"
-                value={topUpNote}
-                onChange={(event) => setTopUpNote(event.target.value)}
-              />
-            </div>
-            <Button onClick={() => void submitTopUp()}>{translate('wallet:topUp')}</Button>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{translate('wallet:amount')}</p>
           </CardContent>
         </Card>
 
         <Card className="border-primary/10 bg-card/90">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
             <CardTitle>{translate('wallet:requestWithdrawal')}</CardTitle>
+            <Dialog open={isWithdrawDialogOpen} onOpenChange={setIsWithdrawDialogOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">{translate('wallet:requestWithdrawal')}</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{translate('wallet:requestWithdrawal')}</DialogTitle>
+                  <DialogDescription>{translate('wallet:subtitle')}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-3">
+                  <div className="grid gap-2">
+                    <Label htmlFor="wallet-withdraw-amount">{translate('wallet:amount')}</Label>
+                    <Input
+                      id="wallet-withdraw-amount"
+                      value={withdrawAmount}
+                      onChange={(event) => setWithdrawAmount(event.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="wallet-withdraw-note">{translate('wallet:note')}</Label>
+                    <Textarea
+                      id="wallet-withdraw-note"
+                      value={withdrawNote}
+                      onChange={(event) => setWithdrawNote(event.target.value)}
+                    />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => void submitWithdrawal()}>{translate('wallet:requestWithdrawal')}</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
-          <CardContent className="grid gap-3">
-            <div className="grid gap-2">
-              <Label htmlFor="wallet-withdraw-amount">{translate('wallet:amount')}</Label>
-              <Input
-                id="wallet-withdraw-amount"
-                value={withdrawAmount}
-                onChange={(event) => setWithdrawAmount(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="wallet-withdraw-note">{translate('wallet:note')}</Label>
-              <Textarea
-                id="wallet-withdraw-note"
-                value={withdrawNote}
-                onChange={(event) => setWithdrawNote(event.target.value)}
-              />
-            </div>
-            <Button onClick={() => void submitWithdrawal()}>{translate('wallet:requestWithdrawal')}</Button>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{translate('wallet:status')}</p>
           </CardContent>
         </Card>
       </div>

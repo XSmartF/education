@@ -11,6 +11,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Label,
   PageIntro,
@@ -36,6 +43,8 @@ export default function DeckDetailPage() {
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<UpdateDeckRequest['visibility']>('public_free');
   const [price, setPrice] = useState('0');
+  const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
+  const [isAddCardDialogOpen, setIsAddCardDialogOpen] = useState(false);
 
   const [frontText, setFrontText] = useState('');
   const [backText, setBackText] = useState('');
@@ -64,6 +73,7 @@ export default function DeckDetailPage() {
       visibility,
       price: Number.isFinite(parsedPrice) ? parsedPrice : 0,
     });
+    setIsUpdateDialogOpen(false);
   };
 
   const submitCard = async () => {
@@ -76,6 +86,7 @@ export default function DeckDetailPage() {
     setFrontText('');
     setBackText('');
     setDifficulty('1');
+    setIsAddCardDialogOpen(false);
   };
 
   if (detail.isLoading) {
@@ -144,74 +155,97 @@ export default function DeckDetailPage() {
       {auth.isAuthenticated && (
         <Card className="border-primary/10 bg-card/90">
           <CardHeader>
-            <CardTitle>{translate('decks:updateDeck')}</CardTitle>
+            <CardTitle>{translate('decks:manage')}</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="deck-update-title">{translate('decks:deckTitle')}</Label>
-              <Input
-                id="deck-update-title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="deck-update-description">{translate('decks:deckDescription')}</Label>
-              <Textarea
-                id="deck-update-description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label>{translate('decks:visibility')}</Label>
-                <Select value={visibility} onValueChange={(value) => setVisibility(value as UpdateDeckRequest['visibility'])}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="private">{translate('decks:visibilityPrivate')}</SelectItem>
-                    <SelectItem value="public_free">{translate('decks:visibilityFree')}</SelectItem>
-                    <SelectItem value="public_paid">{translate('decks:visibilityPaid')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="deck-update-price">{translate('decks:price')}</Label>
-                <Input
-                  id="deck-update-price"
-                  value={price}
-                  onChange={(event) => setPrice(event.target.value)}
-                />
-              </div>
-            </div>
-            <Button onClick={() => void submitUpdate()}>{translate('decks:saveChanges')}</Button>
-          </CardContent>
-        </Card>
-      )}
+          <CardContent>
+            <div className="flex flex-wrap gap-2">
+              <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">{translate('decks:updateDeck')}</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{translate('decks:updateDeck')}</DialogTitle>
+                    <DialogDescription>{deck.title}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="deck-update-title">{translate('decks:deckTitle')}</Label>
+                      <Input
+                        id="deck-update-title"
+                        value={title}
+                        onChange={(event) => setTitle(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="deck-update-description">{translate('decks:deckDescription')}</Label>
+                      <Textarea
+                        id="deck-update-description"
+                        value={description}
+                        onChange={(event) => setDescription(event.target.value)}
+                      />
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label>{translate('decks:visibility')}</Label>
+                        <Select value={visibility} onValueChange={(value) => setVisibility(value as UpdateDeckRequest['visibility'])}>
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="private">{translate('decks:visibilityPrivate')}</SelectItem>
+                            <SelectItem value="public_free">{translate('decks:visibilityFree')}</SelectItem>
+                            <SelectItem value="public_paid">{translate('decks:visibilityPaid')}</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="deck-update-price">{translate('decks:price')}</Label>
+                        <Input
+                          id="deck-update-price"
+                          value={price}
+                          onChange={(event) => setPrice(event.target.value)}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => void submitUpdate()}>{translate('decks:saveChanges')}</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
 
-      {auth.isAuthenticated && (
-        <Card className="border-primary/10 bg-card/90">
-          <CardHeader>
-            <CardTitle>{translate('decks:addCard')}</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="card-front">{translate('decks:frontText')}</Label>
-              <Textarea id="card-front" value={frontText} onChange={(event) => setFrontText(event.target.value)} />
+              <Dialog open={isAddCardDialogOpen} onOpenChange={setIsAddCardDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">{translate('decks:addCard')}</Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{translate('decks:addCard')}</DialogTitle>
+                    <DialogDescription>{deck.title}</DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="card-front">{translate('decks:frontText')}</Label>
+                      <Textarea id="card-front" value={frontText} onChange={(event) => setFrontText(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="card-back">{translate('decks:backText')}</Label>
+                      <Textarea id="card-back" value={backText} onChange={(event) => setBackText(event.target.value)} />
+                    </div>
+                    <div className="grid gap-2 sm:max-w-xs">
+                      <Label htmlFor="card-difficulty">{translate('decks:difficulty')}</Label>
+                      <Input id="card-difficulty" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={() => void submitCard()} disabled={!frontText.trim() || !backText.trim()}>
+                      {translate('decks:addCard')}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="card-back">{translate('decks:backText')}</Label>
-              <Textarea id="card-back" value={backText} onChange={(event) => setBackText(event.target.value)} />
-            </div>
-            <div className="grid gap-2 sm:max-w-xs">
-              <Label htmlFor="card-difficulty">{translate('decks:difficulty')}</Label>
-              <Input id="card-difficulty" value={difficulty} onChange={(event) => setDifficulty(event.target.value)} />
-            </div>
-            <Button onClick={() => void submitCard()} disabled={!frontText.trim() || !backText.trim()}>
-              {translate('decks:addCard')}
-            </Button>
           </CardContent>
         </Card>
       )}

@@ -6,7 +6,23 @@ import { fileApi } from '@/domains/files/api/file-api';
 import type { FileItem } from '@/domains/files/model/types';
 import { filesQueryKeys } from '@/domains/files/model/query-keys';
 import { useAuth } from '@/domains/auth/hooks/use-auth';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, PageIntro, Skeleton } from '@/shared/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  Input,
+  PageIntro,
+  Skeleton,
+} from '@/shared/ui';
 import { saveBlobFile } from '@/shared/utils/file-download';
 import { formatBytes, formatDateTime } from '@/shared/utils/format';
 
@@ -15,9 +31,10 @@ export default function FileDetailPage() {
   const auth = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { fileId } = useParams({ from: '/dashboard/files/$fileId' });
+  const { fileId } = useParams({ from: '/files/$fileId' });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [inputKey, setInputKey] = useState(0);
+  const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false);
 
   const query = useQuery({
     queryKey: filesQueryKeys.detail(fileId),
@@ -35,6 +52,7 @@ export default function FileDetailPage() {
       );
       setSelectedFile(null);
       setInputKey((prev) => prev + 1);
+      setIsReplaceDialogOpen(false);
     },
   });
 
@@ -130,12 +148,23 @@ export default function FileDetailPage() {
             {translate('createdAt')}: {formatDateTime(query.data.createdAt)}
           </p>
 
-          <Input key={inputKey} type="file" onChange={onSelect} disabled={!auth.isAuthenticated} />
-
           <div className="flex flex-wrap gap-2">
-            <Button onClick={replace} disabled={!auth.isAuthenticated || !selectedFile}>
-              {translate('replace')}
-            </Button>
+            <Dialog open={isReplaceDialogOpen} onOpenChange={setIsReplaceDialogOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={!auth.isAuthenticated}>{translate('replace')}</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{translate('replace')}</DialogTitle>
+                </DialogHeader>
+                <Input key={inputKey} type="file" onChange={onSelect} disabled={!auth.isAuthenticated} />
+                <DialogFooter>
+                  <Button onClick={replace} disabled={!auth.isAuthenticated || !selectedFile}>
+                    {translate('replace')}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button
               type="button"
               variant="ghost"

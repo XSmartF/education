@@ -21,6 +21,8 @@
   "enrollments": "Học viên",
   "published": "Đã xuất bản",
   "draft": "Bản nháp",
+  "visibilityPublic": "Công khai",
+  "visibilityPrivate": "Riêng tư",
   "noCourses": "Chưa có khóa học nào được tạo.",
   "noCatalog": "Chưa có khóa học công khai.",
   "addModule": "Thêm module",

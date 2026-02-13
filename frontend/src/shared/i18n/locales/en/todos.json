@@ -15,6 +15,7 @@
   "labelTitle": "Title",
   "titleRequired": "Title is required.",
   "labelDone": "Completed",
+  "edit": "Edit",
   "save": "Save",
   "back": "Back",
   "notFound": "Task not found."

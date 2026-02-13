@@ -10,6 +10,12 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Skeleton,
 } from '@/shared/ui';
@@ -23,6 +29,7 @@ export function FileList({ canEdit }: Props) {
   const { items, loading, error, upload, remove, download } = useFiles();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [inputKey, setInputKey] = useState(0);
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
 
   const onSelect = (event: ChangeEvent<HTMLInputElement>) => {
     setSelectedFile(event.target.files?.[0] ?? null);
@@ -36,22 +43,36 @@ export function FileList({ canEdit }: Props) {
     await upload(selectedFile);
     setSelectedFile(null);
     setInputKey((prev) => prev + 1);
+    setIsUploadDialogOpen(false);
   };
 
   return (
     <Card className="border-primary/10 bg-card/90">
       <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>{translate('title')}</CardTitle>
-        {!canEdit && <Badge variant="secondary">{translate('readOnly')}</Badge>}
+        <div className="flex items-center gap-2">
+          {!canEdit && <Badge variant="secondary">{translate('readOnly')}</Badge>}
+          <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" disabled={!canEdit}>
+                {translate('uploadButton')}
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{translate('uploadButton')}</DialogTitle>
+              </DialogHeader>
+              <Input key={inputKey} type="file" onChange={onSelect} disabled={!canEdit} />
+              <DialogFooter>
+                <Button onClick={submit} disabled={!canEdit || !selectedFile}>
+                  {translate('uploadButton')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Input key={inputKey} type="file" onChange={onSelect} disabled={!canEdit} />
-          <Button onClick={submit} disabled={!canEdit || !selectedFile}>
-            {translate('uploadButton')}
-          </Button>
-        </div>
-
         {loading &&
           Array.from({ length: 3 }).map((_, index) => (
             <div key={`file-skeleton-${index}`} className="rounded-lg border bg-muted/20 p-3">

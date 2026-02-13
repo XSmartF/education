@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +22,13 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   PageIntro,
   Skeleton,
@@ -31,8 +38,9 @@ export default function TodoDetailPage() {
   const { t: translate } = useTranslation('todos');
   const auth = useAuth();
   const navigate = useNavigate();
-  const { todoId } = useParams({ from: '/dashboard/todos/$todoId' });
+  const { todoId } = useParams({ from: '/todos/$todoId' });
   const queryClient = useQueryClient();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   type TodoFormValues = {
     title: string;
     isDone: boolean;
@@ -68,6 +76,7 @@ export default function TodoDetailPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: todosQueryKeys.all });
       queryClient.invalidateQueries({ queryKey: todosQueryKeys.detail(todoId) });
+      setIsEditDialogOpen(false);
     },
   });
 
@@ -140,54 +149,68 @@ export default function TodoDetailPage() {
           </Badge>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Form {...form}>
-            <form className="space-y-4" onSubmit={submit}>
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{translate('labelTitle')}</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="isDone"
-                render={({ field }) => (
-                  <FormItem className="flex items-center gap-2 space-y-0">
-                    <FormControl>
-                      <Checkbox
-                        checked={field.value}
-                        onCheckedChange={(value) => field.onChange(value === true)}
-                      />
-                    </FormControl>
-                    <FormLabel>{translate('labelDone')}</FormLabel>
-                  </FormItem>
-                )}
-              />
-              <div className="flex flex-wrap gap-2">
-                <Button type="submit" disabled={updateMutation.isPending}>
-                  {translate('save')}
-                </Button>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => deleteMutation.mutate()}
-                  disabled={deleteMutation.isPending}
-                >
-                  {translate('remove')}
-                </Button>
-                <Button asChild variant="ghost" type="button">
-                  <Link to="/todos">{translate('back')}</Link>
-                </Button>
-              </div>
-            </form>
-          </Form>
+          <p className="text-sm text-muted-foreground">{data.title}</p>
+          <div className="flex flex-wrap gap-2">
+            <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+              <DialogTrigger asChild>
+                <Button type="button">{translate('edit')}</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{translate('detailTitle')}</DialogTitle>
+                  <DialogDescription>{translate('detailSubtitle')}</DialogDescription>
+                </DialogHeader>
+                <Form {...form}>
+                  <form className="space-y-4" onSubmit={submit}>
+                    <FormField
+                      control={form.control}
+                      name="title"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{translate('labelTitle')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="isDone"
+                      render={({ field }) => (
+                        <FormItem className="flex items-center gap-2 space-y-0">
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value}
+                              onCheckedChange={(value) => field.onChange(value === true)}
+                            />
+                          </FormControl>
+                          <FormLabel>{translate('labelDone')}</FormLabel>
+                        </FormItem>
+                      )}
+                    />
+                    <DialogFooter>
+                      <Button type="submit" disabled={updateMutation.isPending}>
+                        {translate('save')}
+                      </Button>
+                    </DialogFooter>
+                  </form>
+                </Form>
+              </DialogContent>
+            </Dialog>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => deleteMutation.mutate()}
+              disabled={deleteMutation.isPending}
+            >
+              {translate('remove')}
+            </Button>
+            <Button asChild variant="ghost" type="button">
+              <Link to="/todos">{translate('back')}</Link>
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </section>

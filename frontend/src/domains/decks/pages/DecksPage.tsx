@@ -11,6 +11,13 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
   Input,
   Label,
   PageIntro,
@@ -33,6 +40,7 @@ export default function DecksPage() {
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<CreateDeckRequest['visibility']>('public_free');
   const [price, setPrice] = useState('0');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const submit = async () => {
     const parsedPrice = Number.parseFloat(price);
@@ -47,6 +55,7 @@ export default function DecksPage() {
     setDescription('');
     setVisibility('public_free');
     setPrice('0');
+    setIsCreateDialogOpen(false);
   };
 
   return (
@@ -55,44 +64,60 @@ export default function DecksPage() {
 
       {auth.isAuthenticated && (
         <Card className="border-primary/10 bg-card/90">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
             <CardTitle>{translate('decks:createDeck')}</CardTitle>
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>{translate('decks:createDeck')}</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{translate('decks:createDeck')}</DialogTitle>
+                  <DialogDescription>{translate('decks:subtitle')}</DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="deck-title">{translate('decks:deckTitle')}</Label>
+                    <Input id="deck-title" value={title} onChange={(event) => setTitle(event.target.value)} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="deck-description">{translate('decks:deckDescription')}</Label>
+                    <Textarea
+                      id="deck-description"
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                    />
+                  </div>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label>{translate('decks:visibility')}</Label>
+                      <Select value={visibility} onValueChange={(value) => setVisibility(value as CreateDeckRequest['visibility'])}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="private">{translate('decks:visibilityPrivate')}</SelectItem>
+                          <SelectItem value="public_free">{translate('decks:visibilityFree')}</SelectItem>
+                          <SelectItem value="public_paid">{translate('decks:visibilityPaid')}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="deck-price">{translate('decks:price')}</Label>
+                      <Input id="deck-price" value={price} onChange={(event) => setPrice(event.target.value)} />
+                    </div>
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button onClick={() => void submit()} disabled={!title.trim() || !description.trim()}>
+                    {translate('decks:createDeck')}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </CardHeader>
-          <CardContent className="grid gap-4">
-            <div className="grid gap-2">
-              <Label htmlFor="deck-title">{translate('decks:deckTitle')}</Label>
-              <Input id="deck-title" value={title} onChange={(event) => setTitle(event.target.value)} />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="deck-description">{translate('decks:deckDescription')}</Label>
-              <Textarea
-                id="deck-description"
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
-                <Label>{translate('decks:visibility')}</Label>
-                <Select value={visibility} onValueChange={(value) => setVisibility(value as CreateDeckRequest['visibility'])}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="private">{translate('decks:visibilityPrivate')}</SelectItem>
-                    <SelectItem value="public_free">{translate('decks:visibilityFree')}</SelectItem>
-                    <SelectItem value="public_paid">{translate('decks:visibilityPaid')}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="deck-price">{translate('decks:price')}</Label>
-                <Input id="deck-price" value={price} onChange={(event) => setPrice(event.target.value)} />
-              </div>
-            </div>
-            <Button onClick={() => void submit()} disabled={!title.trim() || !description.trim()}>
-              {translate('decks:createDeck')}
-            </Button>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">{translate('decks:subtitle')}</p>
           </CardContent>
         </Card>
       )}
